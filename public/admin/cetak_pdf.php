@@ -21,6 +21,13 @@ switch ($type) {
         $pdfController->generateLaporanNilai($course_id, $semester);
         break;
         
+    case 'rekap_nilai':
+        $mahasiswa_id = intval($_GET['mahasiswa_id'] ?? 0);
+        $semester = $_GET['semester'] ?? null;
+        $semester = ($semester !== '' && $semester !== null) ? $semester : null;
+        $pdfController->generateLaporanRekapNilai($mahasiswa_id, $semester);
+        break;
+        
     case 'irs':
         $semester = $_GET['semester'] ?? null;
         $status = $_GET['status'] ?? null;

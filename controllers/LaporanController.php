@@ -40,10 +40,12 @@ class LaporanController {
     public function getMatakuliahList() {
         $stmt = $this->pdo->query("
             SELECT c.id, c.kode_mk, c.nama_mk, c.sks, c.semester,
-                   u.nama as dosen_nama
+                   MIN(u.nama) as dosen_nama
             FROM courses c
-            LEFT JOIN dosen d ON c.dosen_id = d.id
+            LEFT JOIN jadwal jd ON jd.course_id = c.id
+            LEFT JOIN dosen d ON jd.dosen_id = d.id
             LEFT JOIN users u ON d.user_id = u.id
+            GROUP BY c.id, c.kode_mk, c.nama_mk, c.sks, c.semester
             ORDER BY c.kode_mk ASC
         ");
         return $stmt->fetchAll();
@@ -134,6 +136,126 @@ class LaporanController {
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         return $stmt->fetchAll();
+    }
+    
+    // ============================================
+    // LAPORAN NILAI MAHASISWA PER SEMESTER
+    // ============================================
+    
+    /**
+     * Rekap nilai per mahasiswa: IPK (semua semester) dan IPS per semester.
+     * Rumus konsisten dengan KHS mahasiswa: nilai komponen 75% + kehadiran 25%.
+     */
+    public function getRekapNilaiMahasiswa($mahasiswa_id = null, $semester = null) {
+        $sql = "
+            SELECT 
+                g.id, g.mahasiswa_id, g.course_id, g.semester,
+                c.kode_mk, c.nama_mk, c.sks,
+                g.nilai_tugas, g.nilai_uts, g.nilai_uas, g.nilai_akhir,
+                g.status_verifikasi,
+                m.nim, u.nama as mahasiswa_nama, j.nama as program_studi,
+                COALESCE(p.total, 0) as total_pertemuan,
+                COALESCE(p.hadir, 0) as p_hadir,
+                COALESCE(p.izin, 0) as p_izin,
+                COALESCE(p.sakit, 0) as p_sakit,
+                COALESCE(p.alpa, 0) as p_alpa
+            FROM grades g
+            JOIN courses c ON g.course_id = c.id
+            JOIN mahasiswa m ON g.mahasiswa_id = m.id
+            JOIN users u ON m.user_id = u.id
+            LEFT JOIN jurusan j ON m.jurusan_id = j.id
+            LEFT JOIN (
+                SELECT course_id, mahasiswa_id, COUNT(*) as total,
+                    SUM(CASE WHEN status = 'hadir' THEN 1 ELSE 0 END) as hadir,
+                    SUM(CASE WHEN status = 'izin' THEN 1 ELSE 0 END) as izin,
+                    SUM(CASE WHEN status = 'sakit' THEN 1 ELSE 0 END) as sakit,
+                    SUM(CASE WHEN status = 'alpa' THEN 1 ELSE 0 END) as alpa
+                FROM presensi GROUP BY course_id, mahasiswa_id
+            ) p ON p.course_id = g.course_id AND p.mahasiswa_id = g.mahasiswa_id
+            WHERE g.status_verifikasi = 'verified'
+        ";
+        $params = [];
+        
+        if ($mahasiswa_id) {
+            $sql .= " AND g.mahasiswa_id = ?";
+            $params[] = $mahasiswa_id;
+        }
+        
+        if ($semester) {
+            $sql .= " AND g.semester = ?";
+            $params[] = $semester;
+        }
+        
+        $sql .= " ORDER BY g.semester ASC, c.kode_mk ASC";
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * List mahasiswa untuk dropdown filter report nilai
+     */
+    public function getMahasiswaList() {
+        $stmt = $this->pdo->query("
+            SELECT m.id, m.nim, u.nama as mahasiswa_nama, j.nama as program_studi
+            FROM mahasiswa m
+            JOIN users u ON m.user_id = u.id
+            LEFT JOIN jurusan j ON m.jurusan_id = j.id
+            ORDER BY m.nim ASC
+        ");
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Hitung bobot huruf & IPS/IPK dari kumpulan baris nilai.
+     * Nilai komponen 75% + kehadiran 25% (hadir+izin+sakit dibagi total pertemuan).
+     */
+    public static function hitungNilaiFinal($nilai_akhir, $kehadiran_persen) {
+        if ($kehadiran_persen === null) return $nilai_akhir;
+        return round((0.75 * $nilai_akhir) + (0.25 * $kehadiran_persen), 2);
+    }
+    
+    public static function nilaiKeBobot($nilai) {
+        if ($nilai >= 85) return 4.0;
+        elseif ($nilai >= 75) return 3.0;
+        elseif ($nilai >= 65) return 2.0;
+        elseif ($nilai >= 50) return 1.0;
+        else return 0.0;
+    }
+    
+    /**
+     * Agregasi baris nilai (dari getRekapNilaiMahasiswa) menjadi IPS per semester.
+     * Return: [semester => ['ips' => x, 'total_sks' => n, 'jumlah_mk' => n]]
+     */
+    public static function agregasiPerSemester($rows) {
+        $result = [];
+        foreach ($rows as $row) {
+            $sem = $row['semester'];
+            if (!isset($result[$sem])) {
+                $result[$sem] = ['ips' => 0.0, 'total_sks' => 0, 'jumlah_mk' => 0, 'total_bobot' => 0.0];
+            }
+            
+            $total_pertemuan = intval($row['total_pertemuan']);
+            $kehadiran = ($total_pertemuan > 0)
+                ? ((intval($row['p_hadir']) + intval($row['p_izin']) + intval($row['p_sakit'])) / $total_pertemuan) * 100
+                : null;
+            $nilai_final = self::hitungNilaiFinal(floatval($row['nilai_akhir']), $kehadiran);
+            $bobot = self::nilaiKeBobot($nilai_final);
+            
+            $result[$sem]['total_sks'] += intval($row['sks']);
+            $result[$sem]['jumlah_mk'] += 1;
+            $result[$sem]['total_bobot'] += ($bobot * intval($row['sks']));
+        }
+        
+        foreach ($result as &$r) {
+            $r['ips'] = ($r['total_sks'] > 0) ? round($r['total_bobot'] / $r['total_sks'], 2) : 0.0;
+            unset($r['total_bobot']);
+        }
+        unset($r);
+        
+        ksort($result);
+        return $result;
     }
     
     // ============================================

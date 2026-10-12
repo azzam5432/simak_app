@@ -16,7 +16,7 @@ $masterController = new MasterDataController($pdo);
 // Proses CRUD
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-    
+
     switch ($action) {
         case 'create':
             $result = $masterController->createJurusan($_POST);
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $result['success'] ? 'success' : 'error'
             );
             break;
-            
+
         case 'update':
             $result = $masterController->updateJurusan($_POST['id'], $_POST);
             redirectWithMessage(
@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $result['success'] ? 'success' : 'error'
             );
             break;
-            
+
         case 'delete':
             $result = $masterController->deleteJurusan($_POST['id']);
             redirectWithMessage(
@@ -57,8 +57,8 @@ include __DIR__ . '/../../includes/header.php';
 <div class="table-container">
     <div class="table-header">
         <h3><i class="fas fa-book"></i> Master Jurusan</h3>
-        <div>
-            <select onchange="window.location.href='?fakultas_id='+this.value" style="padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <select onchange="window.location.href='?fakultas_id='+this.value" style="padding: 8px 14px; border: 1.5px solid #e8ecf0; border-radius: 8px; background: #fff;">
                 <option value="">-- Semua Fakultas --</option>
                 <?php foreach ($fakultas_list as $f): ?>
                     <option value="<?= $f['id'] ?>" <?= $filter_fakultas == $f['id'] ? 'selected' : '' ?>>
@@ -67,11 +67,11 @@ include __DIR__ . '/../../includes/header.php';
                 <?php endforeach; ?>
             </select>
             <button class="btn btn-primary" onclick="openModal('modalTambah')">
-                <i class="fas fa-plus"></i> Tambah Jurusan
+                <i class="fas fa-plus"></i> Tambah
             </button>
         </div>
     </div>
-    
+
     <table>
         <thead>
             <tr>
@@ -81,41 +81,45 @@ include __DIR__ . '/../../includes/header.php';
                 <th>Jenjang</th>
                 <th>Ketua Jurusan</th>
                 <th>Mahasiswa</th>
-                <th>Aksi</th>
+                <th class="th-actions">Aksi</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($jurusan_list as $j): ?>
                 <tr>
-                    <td><strong><?= htmlspecialchars($j['kode']) ?></strong></td>
-                    <td><?= htmlspecialchars($j['nama']) ?></td>
-                    <td><small><?= htmlspecialchars($j['fakultas_nama']) ?></small></td>
+                    <td><span class="cell-strong"><?= htmlspecialchars($j['kode']) ?></span></td>
+                    <td><span class="cell-main"><?= htmlspecialchars($j['nama']) ?></span></td>
+                    <td><?= htmlspecialchars($j['fakultas_nama']) ?></td>
+                    <td><span class="jenjang-text"><?= htmlspecialchars($j['jenjang']) ?></span></td>
+                    <td><?= htmlspecialchars($j['ketua_jurusan'] ?? '–') ?></td>
                     <td>
-                        <span class="status-badge" style="background: #3498db; color: #fff; padding: 3px 10px; border-radius: 15px; font-size: 11px;">
-                            <?= $j['jenjang'] ?>
+                        <span class="count-item <?= $j['jumlah_mahasiswa'] > 0 ? '' : 'count-zero' ?>">
+                            <i class="fas fa-user-graduate"></i> <?= $j['jumlah_mahasiswa'] ?> mhs
                         </span>
                     </td>
-                    <td><?= htmlspecialchars($j['ketua_jurusan'] ?? '-') ?></td>
-                    <td>
-                        <span class="status-badge" style="background: #2ecc71; color: #fff; padding: 3px 10px; border-radius: 15px; font-size: 11px;">
-                            <?= $j['jumlah_mahasiswa'] ?> mhs
+                    <td class="td-actions">
+                        <span class="row-actions">
+                            <button class="btn btn-sm btn-icon btn-icon-light" title="Edit"
+                                    onclick='editJurusan(<?= json_encode($j, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'>
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-icon btn-icon-danger-light" title="Hapus"
+                                    onclick="deleteJurusan(<?= $j['id'] ?>, '<?= htmlspecialchars($j['nama'], ENT_QUOTES) ?>')">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-primary btn-sm" onclick='editJurusan(<?= json_encode($j, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'>
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteJurusan(<?= $j['id'] ?>, '<?= htmlspecialchars($j['nama'], ENT_QUOTES) ?>')">
-                            <i class="fas fa-trash"></i>
-                        </button>
                     </td>
                 </tr>
             <?php endforeach; ?>
-            
+
             <?php if (empty($jurusan_list)): ?>
                 <tr>
-                    <td colspan="7" style="text-align: center; color: #7f8c8d; padding: 30px;">
-                        <i class="fas fa-inbox"></i> Belum ada data jurusan
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <i class="fas fa-book"></i>
+                            <h3>Belum ada data jurusan</h3>
+                            <p>Tambahkan jurusan pertama melalui tombol "Tambah".</p>
+                        </div>
                     </td>
                 </tr>
             <?php endif; ?>
@@ -124,19 +128,19 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 
 <!-- Modal Tambah -->
-<div id="modalTambah" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999;">
-    <div class="modal-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);" onclick="closeModal('modalTambah')"></div>
-    <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0;"><i class="fas fa-plus"></i> Tambah Jurusan</h3>
-            <button onclick="closeModal('modalTambah')" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+<div id="modalTambah" class="modal">
+    <div class="modal-overlay" onclick="closeModal('modalTambah')"></div>
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-plus"></i> Tambah Jurusan</h3>
+            <button type="button" class="modal-close" onclick="closeModal('modalTambah')">&times;</button>
         </div>
-        
+
         <form method="POST">
             <input type="hidden" name="action" value="create">
-            
+
             <div class="form-group">
-                <label>Fakultas <span style="color: #e74c3c;">*</span></label>
+                <label>Fakultas <span class="required">*</span></label>
                 <select name="fakultas_id" required>
                     <option value="">-- Pilih Fakultas --</option>
                     <?php foreach ($fakultas_list as $f): ?>
@@ -144,82 +148,86 @@ include __DIR__ . '/../../includes/header.php';
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Kode Jurusan <span style="color: #e74c3c;">*</span></label>
-                <input type="text" name="kode" required placeholder="Contoh: TI, SI" maxlength="10" style="text-transform: uppercase;">
+            <div class="row row-2" style="gap: 15px;">
+                <div class="form-group">
+                    <label>Kode Jurusan <span class="required">*</span></label>
+                    <input type="text" name="kode" required placeholder="Contoh: TI, SI" maxlength="10" style="text-transform: uppercase;">
+                </div>
+                <div class="form-group">
+                    <label>Jenjang <span class="required">*</span></label>
+                    <select name="jenjang" required>
+                        <option value="D3">D3</option>
+                        <option value="D4">D4</option>
+                        <option value="S1">S1</option>
+                        <option value="S2">S2</option>
+                    </select>
+                </div>
             </div>
             <div class="form-group">
-                <label>Nama Jurusan <span style="color: #e74c3c;">*</span></label>
+                <label>Nama Jurusan <span class="required">*</span></label>
                 <input type="text" name="nama" required placeholder="Contoh: Teknik Informatika">
-            </div>
-            <div class="form-group">
-                <label>Jenjang <span style="color: #e74c3c;">*</span></label>
-                <select name="jenjang" required>
-                    <option value="D3">D3</option>
-                    <option value="D4">D4</option>
-                    <option value="S1">S1</option>
-                    <option value="S2">S2</option>
-                </select>
             </div>
             <div class="form-group">
                 <label>Ketua Jurusan</label>
                 <input type="text" name="ketua_jurusan" placeholder="Nama ketua jurusan">
             </div>
-            
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalTambah')">Batal</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Modal Edit -->
-<div id="modalEdit" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999;">
-    <div class="modal-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);" onclick="closeModal('modalEdit')"></div>
-    <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0;"><i class="fas fa-edit"></i> Edit Jurusan</h3>
-            <button onclick="closeModal('modalEdit')" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+<div id="modalEdit" class="modal">
+    <div class="modal-overlay" onclick="closeModal('modalEdit')"></div>
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Edit Jurusan</h3>
+            <button type="button" class="modal-close" onclick="closeModal('modalEdit')">&times;</button>
         </div>
-        
+
         <form method="POST">
             <input type="hidden" name="action" value="update">
             <input type="hidden" name="id" id="edit_id">
-            
+
             <div class="form-group">
-                <label>Fakultas <span style="color: #e74c3c;">*</span></label>
+                <label>Fakultas <span class="required">*</span></label>
                 <select name="fakultas_id" id="edit_fakultas_id" required>
                     <?php foreach ($fakultas_list as $f): ?>
                         <option value="<?= $f['id'] ?>"><?= htmlspecialchars($f['nama']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="form-group">
-                <label>Kode Jurusan <span style="color: #e74c3c;">*</span></label>
-                <input type="text" name="kode" id="edit_kode" required maxlength="10" style="text-transform: uppercase;">
+            <div class="row row-2" style="gap: 15px;">
+                <div class="form-group">
+                    <label>Kode Jurusan <span class="required">*</span></label>
+                    <input type="text" name="kode" id="edit_kode" required maxlength="10" style="text-transform: uppercase;">
+                </div>
+                <div class="form-group">
+                    <label>Jenjang <span class="required">*</span></label>
+                    <select name="jenjang" id="edit_jenjang" required>
+                        <option value="D3">D3</option>
+                        <option value="D4">D4</option>
+                        <option value="S1">S1</option>
+                        <option value="S2">S2</option>
+                    </select>
+                </div>
             </div>
             <div class="form-group">
-                <label>Nama Jurusan <span style="color: #e74c3c;">*</span></label>
+                <label>Nama Jurusan <span class="required">*</span></label>
                 <input type="text" name="nama" id="edit_nama" required>
-            </div>
-            <div class="form-group">
-                <label>Jenjang <span style="color: #e74c3c;">*</span></label>
-                <select name="jenjang" id="edit_jenjang" required>
-                    <option value="D3">D3</option>
-                    <option value="D4">D4</option>
-                    <option value="S1">S1</option>
-                    <option value="S2">S2</option>
-                </select>
             </div>
             <div class="form-group">
                 <label>Ketua Jurusan</label>
                 <input type="text" name="ketua_jurusan" id="edit_ketua_jurusan">
             </div>
-            
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalEdit')">Batal</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
             </div>
         </form>
     </div>
@@ -227,12 +235,12 @@ include __DIR__ . '/../../includes/header.php';
 
 <script>
 function openModal(id) {
-    document.getElementById(id).style.display = 'block';
+    document.getElementById(id).classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
 function closeModal(id) {
-    document.getElementById(id).style.display = 'none';
+    document.getElementById(id).classList.remove('active');
     document.body.style.overflow = '';
 }
 
@@ -258,6 +266,14 @@ function deleteJurusan(id, nama) {
         form.submit();
     }
 }
+
+// ESC menutup modal
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeModal('modalTambah');
+        closeModal('modalEdit');
+    }
+});
 </script>
 
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

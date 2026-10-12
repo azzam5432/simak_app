@@ -58,6 +58,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = $controller->tutupSesiPresensi($_POST['course_id'] ?? $course_id);
             redirectWithMessage('/simak_app/public/dosen/presensi.php?course_id=' . $course_id, 'Sesi presensi ditutup!', 'success');
             break;
+            
+        case 'kirim_token_email':
+            $result = $controller->kirimTokenPresensiViaEmail($_POST['course_id'] ?? $course_id);
+            $redirect = '/simak_app/public/dosen/presensi.php?course_id=' . ($_POST['course_id'] ?? $course_id);
+            if ($result['success']) {
+                redirectWithMessage($redirect, $result['message'], 'success');
+            } else {
+                redirectWithMessage($redirect, 'Gagal: ' . $result['message'], 'error');
+            }
+            break;
     }
 }
 
@@ -116,6 +126,15 @@ include __DIR__ . '/../../includes/header.php';
                 <p style="margin: 5px 0 0; font-size: 13px;">
                     <i class="fas fa-info-circle"></i> Beritahu kode ini ke mahasiswa untuk presensi
                 </p>
+                
+                <form method="POST" style="margin-top: 12px;"
+                      onsubmit="return confirm('Kirim token presensi via email ke semua mahasiswa MK ini?');">
+                    <input type="hidden" name="action" value="kirim_token_email">
+                    <input type="hidden" name="course_id" value="<?= $sesi_aktif['course_id'] ?>">
+                    <button type="submit" class="btn btn-outline btn-sm">
+                        <i class="fas fa-envelope"></i> Kirim Token via Email
+                    </button>
+                </form>
             </div>
             <form method="POST">
                 <input type="hidden" name="action" value="close_session">

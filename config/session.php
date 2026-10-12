@@ -89,6 +89,25 @@ function redirectWithMessage($url, $message, $type = 'success') {
     exit();
 }
 
+/**
+ * Generate / ambil CSRF token dari session
+ */
+function generateCsrfToken() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+/**
+ * Validasi CSRF token dari form POST
+ */
+function validateCsrfToken($token) {
+    return isset($_SESSION['csrf_token']) 
+        && !empty($token) 
+        && hash_equals($_SESSION['csrf_token'], $token);
+}
+
 function getFlashMessage() {
     $message = $_SESSION['flash_message'] ?? null;
     $type = $_SESSION['flash_type'] ?? 'info';

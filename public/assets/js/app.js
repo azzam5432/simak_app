@@ -24,6 +24,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ============================================
+    // SIDEBAR DROPDOWN / SUBMENU TOGGLE
+    // ============================================
+    const submenuToggles = document.querySelectorAll('.submenu-toggle');
+    submenuToggles.forEach(function(toggle) {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const parent = this.closest('li.has-submenu');
+            const isOpen = parent.classList.contains('open');
+
+            // Tutup submenu lain (accordion)
+            document.querySelectorAll('li.has-submenu.open').forEach(function(item) {
+                if (item !== parent) item.classList.remove('open');
+            });
+
+            parent.classList.toggle('open', !isOpen);
+        });
+    });
+
     const searchInput = document.getElementById('tableSearch');
     if (searchInput) {
         searchInput.addEventListener('keyup', function() {

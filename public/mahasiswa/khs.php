@@ -29,6 +29,12 @@ if ($semester) {
     $ips = $controller->hitungIPS($semester);
 }
 
+// Hitung persentase kehadiran: hadir + izin + sakit dihitung masuk, alpa tidak
+function hitungKehadiran($hadir, $izin, $sakit, $alpa) {
+    $total = $hadir + $izin + $sakit + $alpa;
+    return ($total > 0) ? (($hadir + $izin + $sakit) / $total) * 100 : null;
+}
+
 function nilaiHuruf($nilai) {
     if ($nilai >= 85) return ['A', '#2ecc71', 4.0];
     elseif ($nilai >= 75) return ['B', '#3498db', 3.0];
@@ -71,7 +77,9 @@ include __DIR__ . '/../../includes/header.php';
                             <th>Tugas</th>
                             <th>UTS</th>
                             <th>UAS</th>
-                            <th>Nilai Akhir</th>
+                            <th>Absensi</th>
+                            <th>Nilai Asli</th>
+                            <th>Nilai Final</th>
                             <th>Huruf</th>
                             <th>Bobot</th>
                         </tr>
@@ -81,8 +89,14 @@ include __DIR__ . '/../../includes/header.php';
                         $total_sks = 0;
                         $total_bobot = 0;
                         foreach ($khs as $k):
-                            $nilai = floatval($k['nilai_akhir']);
+                            $nilai = floatval($k['nilai_final']);
                             list($huruf, $warna, $bobot) = nilaiHuruf($nilai);
+                            $hadir = intval($k['p_hadir']);
+                            $izin = intval($k['p_izin']);
+                            $sakit = intval($k['p_sakit']);
+                            $alpa = intval($k['p_alpa']);
+                            $total_pertemuan = $hadir + $izin + $sakit + $alpa;
+                            $kehadiran = hitungKehadiran($hadir, $izin, $sakit, $alpa);
                             $total_sks += $k['sks'];
                             $total_bobot += ($bobot * $k['sks']);
                         ?>
@@ -93,7 +107,24 @@ include __DIR__ . '/../../includes/header.php';
                                 <td><?= number_format($k['nilai_tugas'], 1) ?></td>
                                 <td><?= number_format($k['nilai_uts'], 1) ?></td>
                                 <td><?= number_format($k['nilai_uas'], 1) ?></td>
-                                <td><strong><?= number_format($nilai, 1) ?></strong></td>
+                                <td style="white-space: nowrap;">
+                                    <?php if ($total_pertemuan > 0): ?>
+                                        <span title="Hadir: <?= $hadir ?>, Izin: <?= $izin ?>, Sakit: <?= $sakit ?>, Alpa: <?= $alpa ?>" style="color: <?= $kehadiran >= 75 ? '#27ae60' : '#e74c3c' ?>;">
+                                            <?= number_format($kehadiran, 1) ?>%
+                                        </span>
+                                        <span style="display: block; font-size: 11px; color: #7f8c8d;">
+                                            H: <?= $hadir ?> · I: <?= $izin ?> · S: <?= $sakit ?> · A: <?= $alpa ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span style="color: #95a5a6;">-</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?= number_format($k['nilai_akhir'], 1) ?></td>
+                                <td>
+                                    <strong style="color: <?= $nilai >= 85 ? '#2ecc71' : ($nilai >= 65 ? '#f39c12' : '#e74c3c') ?>;">
+                                        <?= number_format($nilai, 1) ?>
+                                    </strong>
+                                </td>
                                 <td>
                                     <span style="background: <?= $warna ?>; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;">
                                         <?= $huruf ?>
@@ -107,7 +138,7 @@ include __DIR__ . '/../../includes/header.php';
                         <tr style="background: #f8f9fa; font-weight: bold;">
                             <td colspan="2" style="text-align: right;">Total / IPS</td>
                             <td><?= $total_sks ?></td>
-                            <td colspan="5"></td>
+                            <td colspan="7"></td>
                             <td>
                                 <?php 
                                 $ips_calc = ($total_sks > 0) ? round($total_bobot / $total_sks, 2) : 0;
@@ -124,6 +155,10 @@ include __DIR__ . '/../../includes/header.php';
     <div>
         <div class="table-container" style="margin-bottom: 20px;">
             <h3 style="text-align: center;"><i class="fas fa-trophy"></i> IPK</h3>
+            <div style="font-size: 12px; color: #7f8c8d; text-align: center; padding: 0 15px;">
+                <i class="fas fa-info-circle"></i> IPK memperhitungkan absensi: 75% nilai komponen + 25% kehadiran<br>
+                <small>(hadir + izin + sakit = masuk kehadiran, alpa = tidak masuk)</small>
+            </div>
             <div style="text-align: center; padding: 10px;">
                 <div style="font-size: 48px; font-weight: 700; color: <?= $ipk_total >= 3.5 ? '#2ecc71' : ($ipk_total >= 2.5 ? '#f39c12' : '#e74c3c') ?>">
                     <?= number_format($ipk_total, 2) ?>

@@ -1,16 +1,16 @@
 <?php
 // ============================================
 // public/admin/matakuliah_get.php
-// API untuk mengambil data mata kuliah (AJAX)
+// API: Get mata kuliah untuk edit
 // ============================================
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../controllers/AdminController.php';
 
-// Cek akses admin
+header('Content-Type: application/json');
+
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit();
 }
@@ -18,37 +18,25 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 $id = $_GET['id'] ?? 0;
 
 if ($id <= 0) {
-    header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'ID tidak valid']);
     exit();
 }
 
 $adminController = new AdminController($pdo);
-$matakuliah = $adminController->getMatakuliahById($id);
+$mk = $adminController->getMatakuliahById($id);
 
-header('Content-Type: application/json');
-
-if ($matakuliah) {
+if ($mk) {
     echo json_encode([
         'success' => true,
-        'id' => $matakuliah['id'],
-        'kode_mk' => $matakuliah['kode_mk'],
-        'nama_mk' => $matakuliah['nama_mk'],
-        'sks' => $matakuliah['sks'],
-        'semester' => $matakuliah['semester'],
-        'jurusan_id' => $matakuliah['jurusan_id'],
-        'fakultas_id' => $matakuliah['fakultas_id'],
-        'dosen_id' => $matakuliah['dosen_id'],
-        'ruang' => $matakuliah['ruang'],
-        'hari' => $matakuliah['hari'],
-        'jam_mulai' => $matakuliah['jam_mulai'],
-        'jam_selesai' => $matakuliah['jam_selesai'],
-        'kapasitas' => $matakuliah['kapasitas']
+        'id' => $mk['id'],
+        'kode_mk' => $mk['kode_mk'],
+        'nama_mk' => $mk['nama_mk'],
+        'sks' => $mk['sks'],
+        'semester' => $mk['semester'],
+        'jurusan_id' => $mk['jurusan_id'],
+        'deskripsi' => $mk['deskripsi']
     ]);
 } else {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Mata kuliah tidak ditemukan'
-    ]);
+    echo json_encode(['success' => false, 'message' => 'Mata kuliah tidak ditemukan']);
 }
 ?>

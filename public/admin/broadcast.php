@@ -25,8 +25,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             VALUES (?, 'admin', ?, ?, ?, ?)
         ");
         $stmt->execute([$sender_id, $target_role, $judul, $pesan, $priority]);
+        $announcement_id = $pdo->lastInsertId();
         
-        redirectWithMessage('/simak_app/public/admin/broadcast.php', 'Pengumuman berhasil dikirim ke semua pengguna!', 'success');
+        $pesan_sukses = 'Pengumuman berhasil dikirim ke semua pengguna!';
+        
+        // Kirim juga via email jika dicentang
+        if (!empty($_POST['kirim_email'])) {
+            $controller = new AdminController($pdo);
+            $email_result = $controller->kirimBroadcastViaEmail($announcement_id);
+            
+            if ($email_result['success'] && $email_result['sent'] > 0) {
+                $pesan_sukses .= " Email terkirim ke {$email_result['sent']} penerima.";
+            } elseif (!$email_result['success']) {
+                redirectWithMessage(
+                    '/simak_app/public/admin/broadcast.php',
+                    'Pengumuman tersimpan, tapi email gagal: ' . ($email_result['message'] ?? 'unknown'),
+                    'warning'
+                );
+            }
+        }
+        
+        redirectWithMessage('/simak_app/public/admin/broadcast.php', $pesan_sukses, 'success');
     } catch (PDOException $e) {
         redirectWithMessage('/simak_app/public/admin/broadcast.php', 'Gagal: ' . $e->getMessage(), 'error');
     }
@@ -80,6 +99,14 @@ include __DIR__ . '/../../includes/header.php';
                 <div class="form-group">
                     <label>Pesan <span style="color: #e74c3c;">*</span></label>
                     <textarea name="pesan" rows="6" required placeholder="Tulis pesan pengumuman..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                        <input type="checkbox" name="kirim_email" value="1" style="width: 16px; height: 16px;">
+                        <i class="fas fa-envelope"></i> Kirim juga via email ke penerima
+                        <small style="color: #7f8c8d;">(butuh waktu tergantung jumlah penerima)</small>
+                    </label>
                 </div>
                 
                 <button type="submit" class="btn btn-primary btn-block" style="padding: 12px; font-size: 16px;">

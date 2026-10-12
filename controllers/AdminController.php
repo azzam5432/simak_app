@@ -529,64 +529,86 @@ class AdminController {
     // MANAJEMEN MATA KULIAH
     // ============================================
     
+    /**
+     * Get semua mata kuliah dengan info jurusan
+     */
     public function getAllMatakuliah() {
         $stmt = $this->pdo->prepare("
-            SELECT c.*, u.nama as dosen_nama, d.nid as dosen_nid,
-                d.id as dosen_id,
-                j.kode as jurusan_kode, j.nama as jurusan_nama, j.jenjang,
-                f.kode as fakultas_kode, f.nama as fakultas_nama
+            SELECT 
+                c.*,
+                j.kode as jurusan_kode,
+                j.nama as jurusan_nama,
+                j.jenjang,
+                f.nama as fakultas_nama,
+                (SELECT COUNT(*) FROM jadwal WHERE course_id = c.id) as total_kelas
             FROM courses c
-            LEFT JOIN dosen d ON c.dosen_id = d.id
-            LEFT JOIN users u ON d.user_id = u.id
-            LEFT JOIN jurusan j ON c.jurusan_id = j.id
-            LEFT JOIN fakultas f ON j.fakultas_id = f.id
+            JOIN jurusan j ON c.jurusan_id = j.id
+            JOIN fakultas f ON j.fakultas_id = f.id
             ORDER BY c.kode_mk ASC
         ");
         $stmt->execute();
         return $stmt->fetchAll();
     }
     
+    /**
+     * Get mata kuliah by ID
+     */
     public function getMatakuliahById($id) {
         $stmt = $this->pdo->prepare("
-            SELECT c.*, u.nama as dosen_nama, d.nid as dosen_nid,
-                j.fakultas_id, j.kode as jurusan_kode, j.nama as jurusan_nama
+            SELECT c.*, j.kode as jurusan_kode, j.nama as jurusan_nama
             FROM courses c
-            LEFT JOIN dosen d ON c.dosen_id = d.id
-            LEFT JOIN users u ON d.user_id = u.id
-            LEFT JOIN jurusan j ON c.jurusan_id = j.id
+            JOIN jurusan j ON c.jurusan_id = j.id
             WHERE c.id = ?
         ");
         $stmt->execute([$id]);
         return $stmt->fetch();
     }
     
+    /**
+     * Get jurusan list untuk dropdown
+     */
+    public function getJurusanList() {
+        $stmt = $this->pdo->prepare("
+            SELECT j.*, f.nama as fakultas_nama, f.kode as fakultas_kode
+            FROM jurusan j
+            JOIN fakultas f ON j.fakultas_id = f.id
+            ORDER BY f.nama ASC, j.nama ASC
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Create mata kuliah
+     */
     public function createMatakuliah($data) {
         try {
+            $kode_mk = trim(strtoupper($data['kode_mk']));
+            $nama_mk = trim($data['nama_mk']);
+            $sks = intval($data['sks']);
+            $semester = intval($data['semester']);
+            $jurusan_id = intval($data['jurusan_id']);
+            $deskripsi = trim($data['deskripsi'] ?? '');
+            
+            // Cek duplikat kode
             $stmt = $this->pdo->prepare("SELECT id FROM courses WHERE kode_mk = ?");
-            $stmt->execute([$data['kode_mk']]);
+            $stmt->execute([$kode_mk]);
             if ($stmt->fetch()) {
                 return ['success' => false, 'message' => 'Kode mata kuliah sudah digunakan!'];
             }
             
+            // Cek duplikat nama di jurusan yang sama
+            $stmt = $this->pdo->prepare("SELECT id FROM courses WHERE nama_mk = ? AND jurusan_id = ?");
+            $stmt->execute([$nama_mk, $jurusan_id]);
+            if ($stmt->fetch()) {
+                return ['success' => false, 'message' => 'Nama mata kuliah sudah ada di jurusan ini!'];
+            }
+            
             $stmt = $this->pdo->prepare("
-                INSERT INTO courses (
-                    kode_mk, nama_mk, sks, semester, jurusan_id,
-                    dosen_id, ruang, hari, jam_mulai, jam_selesai, kapasitas
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO courses (kode_mk, nama_mk, sks, semester, jurusan_id, deskripsi)
+                VALUES (?, ?, ?, ?, ?, ?)
             ");
-            $stmt->execute([
-                trim($data['kode_mk']),
-                trim($data['nama_mk']),
-                intval($data['sks']),
-                intval($data['semester']),
-                intval($data['jurusan_id']) ?: null,
-                !empty($data['dosen_id']) ? intval($data['dosen_id']) : null,
-                trim($data['ruang'] ?? ''),
-                trim($data['hari'] ?? ''),
-                $data['jam_mulai'] ?? null,
-                $data['jam_selesai'] ?? null,
-                intval($data['kapasitas'] ?? 30)
-            ]);
+            $stmt->execute([$kode_mk, $nama_mk, $sks, $semester, $jurusan_id, $deskripsi]);
             
             return ['success' => true, 'id' => $this->pdo->lastInsertId()];
         } catch (PDOException $e) {
@@ -594,37 +616,32 @@ class AdminController {
         }
     }
     
+    /**
+     * Update mata kuliah
+     */
     public function updateMatakuliah($id, $data) {
         try {
+            $kode_mk = trim(strtoupper($data['kode_mk']));
+            $nama_mk = trim($data['nama_mk']);
+            $sks = intval($data['sks']);
+            $semester = intval($data['semester']);
+            $jurusan_id = intval($data['jurusan_id']);
+            $deskripsi = trim($data['deskripsi'] ?? '');
+            
+            // Cek duplikat kode (selain diri sendiri)
+            $stmt = $this->pdo->prepare("SELECT id FROM courses WHERE kode_mk = ? AND id != ?");
+            $stmt->execute([$kode_mk, $id]);
+            if ($stmt->fetch()) {
+                return ['success' => false, 'message' => 'Kode mata kuliah sudah digunakan!'];
+            }
+            
             $stmt = $this->pdo->prepare("
                 UPDATE courses SET
-                    kode_mk = ?,
-                    nama_mk = ?,
-                    sks = ?,
-                    semester = ?,
-                    jurusan_id = ?,
-                    dosen_id = ?,
-                    ruang = ?,
-                    hari = ?,
-                    jam_mulai = ?,
-                    jam_selesai = ?,
-                    kapasitas = ?
+                    kode_mk = ?, nama_mk = ?, sks = ?, 
+                    semester = ?, jurusan_id = ?, deskripsi = ?
                 WHERE id = ?
             ");
-            $stmt->execute([
-                trim($data['kode_mk']),
-                trim($data['nama_mk']),
-                intval($data['sks']),
-                intval($data['semester']),
-                intval($data['jurusan_id']) ?: null,
-                !empty($data['dosen_id']) ? intval($data['dosen_id']) : null,
-                trim($data['ruang'] ?? ''),
-                trim($data['hari'] ?? ''),
-                $data['jam_mulai'] ?? null,
-                $data['jam_selesai'] ?? null,
-                intval($data['kapasitas'] ?? 30),
-                $id
-            ]);
+            $stmt->execute([$kode_mk, $nama_mk, $sks, $semester, $jurusan_id, $deskripsi, $id]);
             
             return ['success' => true];
         } catch (PDOException $e) {
@@ -632,8 +649,23 @@ class AdminController {
         }
     }
     
+    /**
+     * Delete mata kuliah
+     */
     public function deleteMatakuliah($id) {
         try {
+            // Cek apakah masih dipakai di jadwal
+            $stmt = $this->pdo->prepare("SELECT COUNT(*) as total FROM jadwal WHERE course_id = ?");
+            $stmt->execute([$id]);
+            $total = $stmt->fetch()['total'];
+            
+            if ($total > 0) {
+                return [
+                    'success' => false, 
+                    'message' => "Mata kuliah masih digunakan di {$total} jadwal. Hapus jadwal terlebih dahulu."
+                ];
+            }
+            
             $stmt = $this->pdo->prepare("DELETE FROM courses WHERE id = ?");
             $stmt->execute([$id]);
             return ['success' => true];
@@ -643,13 +675,362 @@ class AdminController {
     }
     
     // ============================================
+    // MANAJEMEN JADWAL
+    // ============================================
+    
+    /**
+     * Get semua jadwal dengan join lengkap
+     */
+    public function getAllJadwal($filter = []) {
+        $sql = "
+            SELECT 
+                jd.*,
+                c.kode_mk, c.nama_mk, c.sks, c.semester,
+                d.nid,
+                u.nama as dosen_nama,
+                jr.kode as jurusan_kode,
+                jr.nama as jurusan_nama,
+                (SELECT COUNT(*) FROM irs WHERE course_id = jd.course_id AND status = 'approved') as total_pendaftar
+            FROM jadwal jd
+            JOIN courses c ON jd.course_id = c.id
+            JOIN dosen d ON jd.dosen_id = d.id
+            JOIN users u ON d.user_id = u.id
+            JOIN jurusan jr ON c.jurusan_id = jr.id
+            WHERE 1=1
+        ";
+        $params = [];
+        
+        if (!empty($filter['course_id'])) {
+            $sql .= " AND jd.course_id = ?";
+            $params[] = $filter['course_id'];
+        }
+        
+        if (!empty($filter['dosen_id'])) {
+            $sql .= " AND jd.dosen_id = ?";
+            $params[] = $filter['dosen_id'];
+        }
+        
+        if (!empty($filter['tingkat'])) {
+            $sql .= " AND jd.tingkat = ?";
+            $params[] = $filter['tingkat'];
+        }
+        
+        if (!empty($filter['hari'])) {
+            $sql .= " AND jd.hari = ?";
+            $params[] = $filter['hari'];
+        }
+        
+        $sql .= " ORDER BY 
+            FIELD(jd.hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'),
+            jd.jam_mulai ASC";
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Get jadwal by ID
+     */
+    public function getJadwalById($id) {
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                jd.*,
+                c.kode_mk, c.nama_mk,
+                u.nama as dosen_nama
+            FROM jadwal jd
+            JOIN courses c ON jd.course_id = c.id
+            JOIN dosen d ON jd.dosen_id = d.id
+            JOIN users u ON d.user_id = u.id
+            WHERE jd.id = ?
+        ");
+        $stmt->execute([$id]);
+        return $stmt->fetch();
+    }
+    
+    /**
+     * Cek bentrok jadwal
+     * 
+     * @param array $data Data jadwal
+     * @param int $exclude_id ID jadwal yang dikecualikan (untuk update)
+     * @return array ['bentrok' => bool, 'message' => string]
+     */
+    public function cekBentrokJadwal($data, $exclude_id = null) {
+        $hari = $data['hari'];
+        $jam_mulai = $data['jam_mulai'];
+        $jam_selesai = $data['jam_selesai'];
+        $dosen_id = intval($data['dosen_id']);
+        $ruang = trim($data['ruang'] ?? '');
+        $tingkat = intval($data['tingkat']);
+        $rombel = trim($data['rombel']);
+        $tahun_ajaran = trim($data['tahun_ajaran'] ?? '');
+        $course_id = intval($data['course_id']);
+        
+        // Query dasar: cek bentrok di hari yang sama
+        $sql = "
+            SELECT 
+                jd.id,
+                c.kode_mk, c.nama_mk,
+                u.nama as dosen_nama,
+                jd.ruang, jd.tingkat, jd.rombel,
+                jd.jam_mulai, jd.jam_selesai
+            FROM jadwal jd
+            JOIN courses c ON jd.course_id = c.id
+            JOIN dosen d ON jd.dosen_id = d.id
+            JOIN users u ON d.user_id = u.id
+            WHERE jd.hari = ?
+            AND (
+                (jd.jam_mulai < ? AND jd.jam_selesai > ?)
+                OR (jd.jam_mulai < ? AND jd.jam_selesai > ?)
+                OR (jd.jam_mulai >= ? AND jd.jam_selesai <= ?)
+            )
+        ";
+        $params = [$hari, $jam_selesai, $jam_mulai, $jam_selesai, $jam_mulai, $jam_mulai, $jam_selesai];
+        
+        // Exclude ID saat update
+        if ($exclude_id) {
+            $sql .= " AND jd.id != ?";
+            $params[] = $exclude_id;
+        }
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        $bentrok_list = $stmt->fetchAll();
+        
+        // Cek setiap bentrok
+        foreach ($bentrok_list as $b) {
+            // 1. Cek bentrok dosen
+            if ($b['dosen_nama'] === $data['dosen_nama'] || 
+                $this->getDosenIdByName($b['dosen_nama']) == $dosen_id) {
+                
+                // Cek apakah benar-benar dosen yang sama
+                $stmt2 = $this->pdo->prepare("
+                    SELECT COUNT(*) as total FROM jadwal jd
+                    JOIN dosen d ON jd.dosen_id = d.id
+                    JOIN users u ON d.user_id = u.id
+                    WHERE jd.hari = ?
+                    AND jd.id = ?
+                    AND u.nama = (SELECT u2.nama FROM dosen d2 JOIN users u2 ON d2.user_id = u2.id WHERE d2.id = ?)
+                ");
+                // Skip, kita cek langsung
+            }
+        }
+        
+        // Cek bentrok dosen
+        $stmt = $this->pdo->prepare("
+            SELECT c.kode_mk, c.nama_mk, jd.jam_mulai, jd.jam_selesai, jd.ruang
+            FROM jadwal jd
+            JOIN courses c ON jd.course_id = c.id
+            WHERE jd.dosen_id = ?
+            AND jd.hari = ?
+            AND (
+                (jd.jam_mulai < ? AND jd.jam_selesai > ?)
+                OR (jd.jam_mulai < ? AND jd.jam_selesai > ?)
+                OR (jd.jam_mulai >= ? AND jd.jam_selesai <= ?)
+            )
+            " . ($exclude_id ? "AND jd.id != ?" : "") . "
+            LIMIT 1
+        ");
+        $params = [$dosen_id, $hari, $jam_selesai, $jam_mulai, $jam_selesai, $jam_mulai, $jam_mulai, $jam_selesai];
+        if ($exclude_id) $params[] = $exclude_id;
+        $stmt->execute($params);
+        $bentrok_dosen = $stmt->fetch();
+        
+        if ($bentrok_dosen) {
+            return [
+                'bentrok' => true,
+                'message' => "Dosen sudah mengajar {$bentrok_dosen['kode_mk']} - {$bentrok_dosen['nama_mk']} pada jam " . 
+                            date('H:i', strtotime($bentrok_dosen['jam_mulai'])) . "-" . 
+                            date('H:i', strtotime($bentrok_dosen['jam_selesai']))
+            ];
+        }
+        
+        // Cek bentrok ruang
+        if (!empty($ruang)) {
+            $stmt = $this->pdo->prepare("
+                SELECT c.kode_mk, c.nama_mk, jd.jam_mulai, jd.jam_selesai
+                FROM jadwal jd
+                JOIN courses c ON jd.course_id = c.id
+                WHERE jd.ruang = ?
+                AND jd.hari = ?
+                AND (
+                    (jd.jam_mulai < ? AND jd.jam_selesai > ?)
+                    OR (jd.jam_mulai < ? AND jd.jam_selesai > ?)
+                    OR (jd.jam_mulai >= ? AND jd.jam_selesai <= ?)
+                )
+                " . ($exclude_id ? "AND jd.id != ?" : "") . "
+                LIMIT 1
+            ");
+            $params = [$ruang, $hari, $jam_selesai, $jam_mulai, $jam_selesai, $jam_mulai, $jam_mulai, $jam_selesai];
+            if ($exclude_id) $params[] = $exclude_id;
+            $stmt->execute($params);
+            $bentrok_ruang = $stmt->fetch();
+            
+            if ($bentrok_ruang) {
+                return [
+                    'bentrok' => true,
+                    'message' => "Ruang {$ruang} sudah dipakai {$bentrok_ruang['kode_mk']} - {$bentrok_ruang['nama_mk']} pada jam " . 
+                                date('H:i', strtotime($bentrok_ruang['jam_mulai'])) . "-" . 
+                                date('H:i', strtotime($bentrok_ruang['jam_selesai']))
+                ];
+            }
+        }
+        
+        // Cek bentrok kelas (tingkat + rombel)
+        if (!empty($tahun_ajaran)) {
+            $stmt = $this->pdo->prepare("
+                SELECT c.kode_mk, c.nama_mk, jd.jam_mulai, jd.jam_selesai
+                FROM jadwal jd
+                JOIN courses c ON jd.course_id = c.id
+                WHERE jd.tingkat = ?
+                AND jd.rombel = ?
+                AND jd.tahun_ajaran = ?
+                AND jd.hari = ?
+                AND (
+                    (jd.jam_mulai < ? AND jd.jam_selesai > ?)
+                    OR (jd.jam_mulai < ? AND jd.jam_selesai > ?)
+                    OR (jd.jam_mulai >= ? AND jd.jam_selesai <= ?)
+                )
+                " . ($exclude_id ? "AND jd.id != ?" : "") . "
+                LIMIT 1
+            ");
+            $params = [$tingkat, $rombel, $tahun_ajaran, $hari, $jam_selesai, $jam_mulai, $jam_selesai, $jam_mulai, $jam_mulai, $jam_selesai];
+            if ($exclude_id) $params[] = $exclude_id;
+            $stmt->execute($params);
+            $bentrok_kelas = $stmt->fetch();
+            
+            if ($bentrok_kelas) {
+                return [
+                    'bentrok' => true,
+                    'message' => "Kelas {$tingkat}{$rombel} sudah ada jadwal {$bentrok_kelas['kode_mk']} - {$bentrok_kelas['nama_mk']} pada jam " . 
+                                date('H:i', strtotime($bentrok_kelas['jam_mulai'])) . "-" . 
+                                date('H:i', strtotime($bentrok_kelas['jam_selesai']))
+                ];
+            }
+        }
+        
+        return ['bentrok' => false, 'message' => ''];
+    }
+    
+    /**
+     * Helper: Get dosen_id by name
+     */
+    private function getDosenIdByName($nama) {
+        $stmt = $this->pdo->prepare("
+            SELECT d.id FROM dosen d
+            JOIN users u ON d.user_id = u.id
+            WHERE u.nama = ?
+        ");
+        $stmt->execute([$nama]);
+        $result = $stmt->fetch();
+        return $result ? $result['id'] : 0;
+    }
+    
+    /**
+     * Create jadwal
+     */
+    public function createJadwal($data) {
+        try {
+            // Cek bentrok
+            $bentrok = $this->cekBentrokJadwal($data);
+            if ($bentrok['bentrok']) {
+                return ['success' => false, 'message' => 'BENTROK! ' . $bentrok['message']];
+            }
+            
+            $stmt = $this->pdo->prepare("
+                INSERT INTO jadwal (
+                    course_id, dosen_id, tingkat, rombel,
+                    hari, jam_mulai, jam_selesai, ruang,
+                    kapasitas, tahun_ajaran, semester_ke
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                intval($data['course_id']),
+                intval($data['dosen_id']),
+                intval($data['tingkat']),
+                strtoupper(trim($data['rombel'])),
+                trim($data['hari']),
+                $data['jam_mulai'],
+                $data['jam_selesai'],
+                trim($data['ruang'] ?? ''),
+                intval($data['kapasitas'] ?? 30),
+                trim($data['tahun_ajaran'] ?? ''),
+                intval($data['semester_ke'] ?? 1)
+            ]);
+            
+            return ['success' => true, 'id' => $this->pdo->lastInsertId()];
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Update jadwal
+     */
+    public function updateJadwal($id, $data) {
+        try {
+            // Cek bentrok (exclude diri sendiri)
+            $bentrok = $this->cekBentrokJadwal($data, $id);
+            if ($bentrok['bentrok']) {
+                return ['success' => false, 'message' => 'BENTROK! ' . $bentrok['message']];
+            }
+            
+            $stmt = $this->pdo->prepare("
+                UPDATE jadwal SET
+                    course_id = ?, dosen_id = ?, tingkat = ?, rombel = ?,
+                    hari = ?, jam_mulai = ?, jam_selesai = ?, ruang = ?,
+                    kapasitas = ?, tahun_ajaran = ?, semester_ke = ?
+                WHERE id = ?
+            ");
+            $stmt->execute([
+                intval($data['course_id']),
+                intval($data['dosen_id']),
+                intval($data['tingkat']),
+                strtoupper(trim($data['rombel'])),
+                trim($data['hari']),
+                $data['jam_mulai'],
+                $data['jam_selesai'],
+                trim($data['ruang'] ?? ''),
+                intval($data['kapasitas'] ?? 30),
+                trim($data['tahun_ajaran'] ?? ''),
+                intval($data['semester_ke'] ?? 1),
+                $id
+            ]);
+            
+            return ['success' => true];
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Delete jadwal
+     */
+    public function deleteJadwal($id) {
+        try {
+            $stmt = $this->pdo->prepare("DELETE FROM jadwal WHERE id = ?");
+            $stmt->execute([$id]);
+            return ['success' => true];
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Get daftar hari untuk dropdown
+     */
+    public function getHariList() {
+        return ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    }
+    
+    // ============================================
     // VALIDASI IRS
     // ============================================
     
     public function getPendingIRS() {
         $stmt = $this->pdo->prepare("
             SELECT irs.*, 
-                   c.kode_mk, c.nama_mk, c.sks, c.ruang,
+                   c.kode_mk, c.nama_mk, c.sks,
                    m.nim, j.nama as jurusan_nama, m.semester as mhs_semester,
                    u.nama as mahasiswa_nama
             FROM irs
@@ -737,7 +1118,9 @@ class AdminController {
             JOIN courses c ON g.course_id = c.id
             JOIN mahasiswa m ON g.mahasiswa_id = m.id
             JOIN users u ON m.user_id = u.id
-            LEFT JOIN dosen dos ON c.dosen_id = dos.id
+            LEFT JOIN dosen dos ON EXISTS (
+                SELECT 1 FROM jadwal jd WHERE jd.course_id = c.id AND jd.dosen_id = dos.id
+            )
             LEFT JOIN users dosu ON dos.user_id = dosu.id
             WHERE g.status_verifikasi = 'draft'
             ORDER BY g.created_at ASC, m.nim ASC
@@ -762,34 +1145,166 @@ class AdminController {
         return $stmt->fetchAll();
     }
     
+    /**
+     * Get satu data nilai by ID (untuk validasi sebelum verifikasi)
+     */
+    public function getGradeById($grade_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT g.*, 
+                   u.nama as mahasiswa_nama, m.nim,
+                   c.kode_mk, c.nama_mk
+            FROM grades g
+            JOIN mahasiswa m ON g.mahasiswa_id = m.id
+            JOIN users u ON m.user_id = u.id
+            JOIN courses c ON g.course_id = c.id
+            WHERE g.id = ?
+        ");
+        $stmt->execute([$grade_id]);
+        return $stmt->fetch();
+    }
+    
+    /**
+     * Verifikasi satu nilai
+     * Validasi: grade harus ada & masih berstatus draft
+     */
     public function verifyGrade($grade_id) {
         try {
+            $grade_id = intval($grade_id);
+            
+            if ($grade_id <= 0) {
+                return ['success' => false, 'message' => 'ID nilai tidak valid'];
+            }
+            
+            $grade = $this->getGradeById($grade_id);
+            if (!$grade) {
+                return ['success' => false, 'message' => 'Data nilai tidak ditemukan'];
+            }
+            
+            if ($grade['status_verifikasi'] !== 'draft') {
+                return ['success' => false, 'message' => 'Nilai sudah diverifikasi sebelumnya'];
+            }
+            
+            // Validasi: komponen nilai harus lengkap sebelum diverifikasi
+            if ($grade['nilai_tugas'] === null || $grade['nilai_uts'] === null || $grade['nilai_uas'] === null) {
+                return ['success' => false, 'message' => 'Nilai belum lengkap (tugas/UTS/UAS) dan tidak bisa diverifikasi'];
+            }
+            
             $stmt = $this->pdo->prepare("
                 UPDATE grades SET status_verifikasi = 'verified', updated_at = NOW()
-                WHERE id = ?
+                WHERE id = ? AND status_verifikasi = 'draft'
             ");
             $stmt->execute([$grade_id]);
+            
+            if ($stmt->rowCount() === 0) {
+                return ['success' => false, 'message' => 'Gagal memverifikasi: status nilai sudah berubah'];
+            }
+            
             return ['success' => true];
         } catch (PDOException $e) {
             return ['success' => false, 'message' => $e->getMessage()];
         }
     }
     
+    /**
+     * Verifikasi semua nilai draft pada satu mata kuliah
+     * Validasi: course harus ada & ada nilai draft
+     */
     public function verifyAllGrades($course_id) {
         try {
+            $course_id = intval($course_id);
+            
+            if ($course_id <= 0) {
+                return ['success' => false, 'message' => 'ID mata kuliah tidak valid'];
+            }
+            
+            // Cek mata kuliah ada
+            $stmt = $this->pdo->prepare("SELECT id, kode_mk, nama_mk FROM courses WHERE id = ?");
+            $stmt->execute([$course_id]);
+            $course = $stmt->fetch();
+            
+            if (!$course) {
+                return ['success' => false, 'message' => 'Mata kuliah tidak ditemukan'];
+            }
+            
+            // Hitung nilai draft yang valid (komponen lengkap)
+            $stmt = $this->pdo->prepare("
+                SELECT COUNT(*) as total 
+                FROM grades 
+                WHERE course_id = ? AND status_verifikasi = 'draft'
+                AND nilai_tugas IS NOT NULL AND nilai_uts IS NOT NULL AND nilai_uas IS NOT NULL
+            ");
+            $stmt->execute([$course_id]);
+            $total_draft = intval($stmt->fetch()['total']);
+            
+            // Hitung nilai draft yang belum lengkap
+            $stmt = $this->pdo->prepare("
+                SELECT COUNT(*) as total 
+                FROM grades 
+                WHERE course_id = ? AND status_verifikasi = 'draft'
+                AND (nilai_tugas IS NULL OR nilai_uts IS NULL OR nilai_uas IS NULL)
+            ");
+            $stmt->execute([$course_id]);
+            $total_belum_lengkap = intval($stmt->fetch()['total']);
+            
+            if ($total_draft === 0) {
+                return ['success' => false, 'message' => 'Tidak ada nilai draft yang bisa diverifikasi untuk mata kuliah ini'];
+            }
+            
             $this->pdo->beginTransaction();
             
             $stmt = $this->pdo->prepare("
                 UPDATE grades 
                 SET status_verifikasi = 'verified', updated_at = NOW()
                 WHERE course_id = ? AND status_verifikasi = 'draft'
+                AND nilai_tugas IS NOT NULL AND nilai_uts IS NOT NULL AND nilai_uas IS NOT NULL
             ");
             $stmt->execute([$course_id]);
+            $affected = $stmt->rowCount();
             
             $this->pdo->commit();
-            return ['success' => true, 'affected' => $stmt->rowCount()];
+            
+            $message = $affected . ' nilai berhasil diverifikasi';
+            if ($total_belum_lengkap > 0) {
+                $message .= '. ' . $total_belum_lengkap . ' nilai dilewati karena komponen nilai belum lengkap';
+            }
+            
+            return ['success' => true, 'affected' => $affected, 'message' => $message];
         } catch (PDOException $e) {
-            $this->pdo->rollBack();
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Tolak nilai draft (kembalikan ke perhatian dosen)
+     */
+    public function rejectGrade($grade_id, $catatan = null) {
+        try {
+            $grade_id = intval($grade_id);
+            
+            if ($grade_id <= 0) {
+                return ['success' => false, 'message' => 'ID nilai tidak valid'];
+            }
+            
+            $grade = $this->getGradeById($grade_id);
+            if (!$grade) {
+                return ['success' => false, 'message' => 'Data nilai tidak ditemukan'];
+            }
+            
+            if ($grade['status_verifikasi'] !== 'draft') {
+                return ['success' => false, 'message' => 'Hanya nilai berstatus draft yang bisa ditolak'];
+            }
+            
+            $stmt = $this->pdo->prepare("
+                UPDATE grades SET status_verifikasi = 'draft', catatan = ?, updated_at = NOW()
+                WHERE id = ? AND status_verifikasi = 'draft'
+            ");
+            $stmt->execute([$catatan, $grade_id]);
+            
+            return ['success' => true];
+        } catch (PDOException $e) {
             return ['success' => false, 'message' => $e->getMessage()];
         }
     }
@@ -802,7 +1317,9 @@ class AdminController {
                 COUNT(g.id) as total_draft
             FROM grades g
             JOIN courses c ON g.course_id = c.id
-            LEFT JOIN dosen d ON c.dosen_id = d.id
+            LEFT JOIN dosen d ON EXISTS (
+                SELECT 1 FROM jadwal jd WHERE jd.course_id = c.id AND jd.dosen_id = d.id
+            )
             LEFT JOIN users u ON d.user_id = u.id
             WHERE g.status_verifikasi = 'draft'
             GROUP BY c.id, c.kode_mk, c.nama_mk, c.sks, u.nama
@@ -827,6 +1344,15 @@ class AdminController {
             WHERE status_verifikasi = 'draft'
         ");
         $stats['courses_with_draft'] = $stmt->fetch()['total'];
+        
+        // Nilai draft dengan komponen belum lengkap (tugas/UTS/UAS kosong)
+        $stmt = $this->pdo->query("
+            SELECT COUNT(*) as total 
+            FROM grades 
+            WHERE status_verifikasi = 'draft'
+            AND (nilai_tugas IS NULL OR nilai_uts IS NULL OR nilai_uas IS NULL)
+        ");
+        $stats['belum_lengkap'] = $stmt->fetch()['total'];
         
         return $stats;
     }
@@ -1178,6 +1704,91 @@ public function sendAkunBaruEmail($user_id, $plain_password) {
         
     } catch (PDOException $e) {
         return ['success' => false, 'message' => $e->getMessage()];
+    }
+}
+
+/**
+ * Kirim broadcast pengumuman via email ke semua user sesuai target_role.
+ Taxahorn dan dipanggil dari public/admin/broadcast.php (checkbox "kirim via email").
+ */
+public function kirimBroadcastViaEmail($announcement_id) {
+    try {
+        // Ambil data pengumuman + pengirim
+        $stmt = $this->pdo->prepare("
+            SELECT a.*, u.nama as sender_name
+            FROM announcements a
+            JOIN users u ON a.sender_id = u.id
+            WHERE a.id = ?
+        ");
+        $stmt->execute([$announcement_id]);
+        $announcement = $stmt->fetch();
+        
+        if (!$announcement) {
+            return ['success' => false, 'sent' => 0, 'failed' => 0, 'message' => 'Pengumuman tidak ditemukan'];
+        }
+        
+        // Ambil semua email penerima sesuai target_role (yang memiliki email)
+        $sql = "SELECT nama, email FROM users";
+        if ($announcement['target_role'] !== 'all') {
+            $sql .= " WHERE role = ?";
+        }
+        $stmt = $this->pdo->prepare($sql);
+        
+        if ($announcement['target_role'] !== 'all') {
+            $stmt->execute([$announcement['target_role']]);
+        } else {
+            $stmt->execute();
+        }
+        
+        $recipients = $stmt->fetchAll();
+        
+        if (empty($recipients)) {
+            return ['success' => true, 'sent' => 0, 'failed' => 0, 'message' => 'Tidak ada penerima dengan email'];
+        }
+        
+        require_once __DIR__ . '/../helper/EmailHelper.php';
+        require_once __DIR__ . '/../template/email/broadcast.php';
+        
+        $emailHelper = new EmailHelper();
+        $sent = 0;
+        $failed = 0;
+        $failed_emails = [];
+        
+        foreach ($recipients as $r) {
+            if (empty($r['email'])) {
+                $failed++;
+                continue;
+            }
+            
+            $body = renderBroadcastEmail([
+                'nama'        => $r['nama'],
+                'judul'       => $announcement['judul'],
+                'pesan'       => $announcement['pesan'],
+                'priority'    => $announcement['priority'],
+                'sender_name' => $announcement['sender_name'],
+                'sender_role' => $announcement['sender_role']
+            ]);
+            
+            $result = $emailHelper->send(
+                $r['email'],
+                $r['nama'],
+                'Pengumuman: ' . $announcement['judul'],
+                $body
+            );
+            
+            if ($result['success']) $sent++;
+            else { $failed++; $failed_emails[] = $r['email']; }
+        }
+        
+        return [
+            'success' => true,
+            'sent'    => $sent,
+            'failed'  => $failed,
+            'message' => "Email terkirim ke {$sent} penerima" . ($failed > 0 ? ", {$failed} gagal" : '')
+        ];
+        
+    } catch (PDOException $e) {
+        return ['success' => false, 'sent' => 0, 'failed' => 0, 'message' => $e->getMessage()];
     }
 }
 }

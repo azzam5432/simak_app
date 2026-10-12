@@ -331,6 +331,112 @@ a:hover {
     font-weight: 600;
 }
 
+/* ============================================
+   SIDEBAR DROPDOWN / SUBMENU
+   ============================================ */
+
+.sidebar-menu li.has-submenu > a.submenu-toggle .arrow {
+    margin-left: auto;
+    font-size: 12px;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-menu li.has-submenu > a.submenu-toggle .badge + .arrow {
+    margin-left: 8px;
+}
+
+.sidebar-menu li.has-submenu.open > a.submenu-toggle .arrow {
+    transform: rotate(90deg);
+}
+
+.sidebar-menu li.has-submenu > a.submenu-toggle {
+    cursor: pointer;
+}
+
+.sidebar-menu li.has-submenu.open > a.submenu-toggle {
+    background: rgba(255,255,255,0.08);
+    color: var(--white);
+}
+
+.sidebar-menu li.has-submenu.open > a.submenu-toggle i:not(.arrow):not(.badge) {
+    color: var(--primary-light);
+}
+
+.sidebar-menu ul.submenu {
+    list-style: none;
+    margin: 4px 0 6px;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+}
+
+.sidebar-menu li.has-submenu.open > ul.submenu {
+    max-height: 500px;
+}
+
+.sidebar-menu ul.submenu li {
+    padding: 0;
+}
+
+.sidebar-menu ul.submenu li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 16px 9px 30px;
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.55);
+    border-radius: 8px;
+    position: relative;
+}
+
+.sidebar-menu ul.submenu li a::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.sidebar-menu ul.submenu li a i {
+    width: 18px;
+    font-size: 13px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.sidebar-menu ul.submenu li a:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--white);
+}
+
+.sidebar-menu ul.submenu li a:hover::before {
+    background: var(--primary-light);
+}
+
+.sidebar-menu ul.submenu li a.active {
+    background: rgba(52, 152, 219, 0.25);
+    color: var(--white);
+    font-weight: 500;
+}
+
+.sidebar-menu ul.submenu li a.active::before {
+    background: var(--primary);
+}
+
+.sidebar-menu ul.submenu li a .badge {
+    margin-left: auto;
+    background: var(--danger);
+    color: var(--white);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
 .sidebar-toggle {
     display: none;
     position: fixed;
@@ -1153,4 +1259,742 @@ a:hover {
 
 .spin {
     animation: spin 1s linear infinite;
+}
+/* ============================================
+   KARTU PENGAJUAN (Validasi IRS / Verifikasi Nilai)
+   ============================================ */
+
+.irs-group {
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    background: #fafbfc;
+}
+
+.irs-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.irs-group-title {
+    margin: 0;
+    font-size: 16px;
+    color: var(--secondary);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.irs-group-nim {
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--gray-dark);
+    background: #eef1f4;
+    padding: 2px 10px;
+    border-radius: 12px;
+}
+
+.irs-group-meta {
+    color: var(--gray-dark);
+    font-size: 13px;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+
+.empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--gray-dark);
+}
+
+.empty-state i {
+    font-size: 44px;
+    color: #cfd8dc;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.empty-state h3 {
+    font-size: 17px;
+    color: var(--secondary);
+    margin-bottom: 4px;
+}
+
+.empty-state p {
+    font-size: 14px;
+}
+
+/* ============================================
+   TOMBOL & BARIS TAMBAHAN
+   ============================================ */
+
+.btn-outline-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1.5px solid var(--danger);
+}
+
+.btn-outline-danger:hover:not(:disabled) {
+    background: var(--danger);
+    color: var(--white);
+}
+
+.th-actions,
+.td-actions {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.td-actions form {
+    margin: 0;
+}
+
+.row-muted {
+    background: #f6f7f8;
+}
+
+.row-muted td {
+    color: #9aa5ab;
+}
+
+.table-container > .table-header input[type="text"] {
+    padding: 8px 14px;
+    border: 1.5px solid #e8ecf0;
+    border-radius: 8px;
+    font-size: 13px;
+    transition: var(--transition);
+}
+
+.table-container > .table-header input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12);
+}
+
+/* ============================================
+   TABEL MASTER DATA (counter & teks halus tanpa badge)
+   ============================================ */
+
+.cell-strong {
+    font-weight: 600;
+    color: var(--secondary);
+}
+
+.cell-main {
+    font-weight: 600;
+    color: var(--secondary);
+}
+
+.cell-sub {
+    display: block;
+    font-size: 12px;
+    color: var(--gray-dark);
+    margin-top: 1px;
+}
+
+.cell-muted {
+    color: #b3bcc1;
+}
+
+.count-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--secondary);
+    font-weight: 600;
+}
+
+.count-item i {
+    font-size: 12px;
+    color: var(--gray-dark);
+}
+
+.count-item.count-zero {
+    color: #b3bcc1;
+    font-weight: 400;
+}
+
+.count-item.count-zero i {
+    color: #d5dbdf;
+}
+
+.jenjang-text {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--gray-dark);
+    text-transform: uppercase;
+}
+
+.row-actions {
+    display: inline-flex;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.btn-icon {
+    padding: 6px 10px;
+    font-size: 13px;
+    line-height: 1;
+}
+
+.btn-icon i {
+    font-size: 13px;
+}
+
+.btn-icon-light {
+    background: #eef2f5;
+    color: var(--secondary);
+    border: none;
+}
+
+.btn-icon-light:hover:not(:disabled) {
+    background: var(--primary);
+    color: var(--white);
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-icon-danger-light {
+    background: #fdeeec;
+    color: var(--danger);
+    border: none;
+}
+
+.btn-icon-danger-light:hover:not(:disabled) {
+    background: var(--danger);
+    color: var(--white);
+    transform: none;
+    box-shadow: none;
+}
+
+/* Banner periode aktif (mahasiswa) */
+.period-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--white);
+    padding: 16px 22px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.period-banner .period-title {
+    font-size: 14px;
+    opacity: 0.85;
+}
+
+.period-banner .period-value {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.period-banner .period-note {
+    font-size: 12.5px;
+    opacity: 0.85;
+}
+
+/* ============================================================
+   HALAMAN IRS MAHASISWA (paket pembelajaran)
+   ============================================================ */
+
+/* --- Toolbar ringkas (semester + status + SKS) --- */
+.irs-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 22px;
+    margin-bottom: 25px;
+}
+
+.irs-toolbar-left {
+    display: flex;
+    align-items: center;
+}
+
+.irs-toolbar-right {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.irs-semester-picker {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.irs-sem-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray-dark);
+    margin-right: 6px;
+}
+
+.irs-sem-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 32px;
+    padding: 0 9px;
+    border-radius: 8px;
+    background: #f1f4f7;
+    color: var(--secondary);
+    font-size: 13px;
+    font-weight: 600;
+    border: 2px solid transparent;
+    transition: var(--transition);
+}
+
+.irs-sem-btn:hover {
+    background: #e3eaf1;
+    color: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.irs-sem-btn.active {
+    background: var(--primary);
+    color: var(--white);
+    box-shadow: 0 3px 10px rgba(52, 152, 219, 0.35);
+}
+
+.irs-sem-btn.current:not(.active) {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.irs-sem-btn.locked {
+    background: #f5f6f8;
+    color: #b9c1c9;
+    cursor: not-allowed;
+    font-size: 11.5px;
+}
+
+.irs-sem-btn.locked i {
+    opacity: 0.7;
+}
+
+.irs-sem-hint {
+    margin-left: 10px;
+    font-size: 12px;
+    color: var(--gray-dark);
+}
+
+.irs-sem-hint i {
+    color: var(--primary);
+}
+
+/* --- Banner lihat-saja (bukan semester aktif) --- */
+.irs-lock-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #eef1f4;
+    border: 1px solid #d8dee4;
+    border-left: 4px solid var(--gray-dark);
+    border-radius: var(--radius);
+    padding: 13px 18px;
+    margin-bottom: 20px;
+    font-size: 13.5px;
+    color: var(--secondary);
+}
+
+.irs-lock-banner > i {
+    font-size: 18px;
+    color: var(--gray-dark);
+    flex-shrink: 0;
+}
+
+.irs-lock-banner small {
+    color: var(--gray-dark);
+}
+
+.irs-lock-banner-warning {
+    background: #fef9ec;
+    border-color: #f5ddaf;
+    border-left-color: var(--warning);
+}
+
+.irs-lock-banner-warning > i {
+    color: var(--warning-dark);
+}
+
+.irs-sks-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f4f8fc;
+    border: 1px solid #dfe9f3;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--secondary);
+}
+
+.irs-sks-pill i {
+    color: var(--primary);
+}
+
+.irs-sks-pill strong {
+    font-size: 16px;
+    color: var(--secondary);
+}
+
+.irs-sks-pill strong.over {
+    color: var(--danger);
+}
+
+.irs-sks-track {
+    display: inline-block;
+    width: 90px;
+    height: 6px;
+    background: #e3e8ed;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.irs-sks-fill {
+    display: block;
+    height: 100%;
+    background: var(--primary);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+
+.irs-sks-fill.near {
+    background: var(--warning);
+}
+
+.irs-sks-fill.over {
+    background: var(--danger);
+}
+
+/* --- Badge status --- */
+.irs-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.irs-status-pending {
+    background: #fef5e7;
+    color: #b9770e;
+}
+
+.irs-status-approved {
+    background: #e9f9ef;
+    color: #1e8449;
+}
+
+.irs-status-rejected {
+    background: #fdedec;
+    color: #c0392b;
+}
+
+.irs-status-empty {
+    background: #eef1f4;
+    color: var(--gray-dark);
+}
+
+/* --- Grid konten --- */
+.irs-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 25px;
+    align-items: start;
+}
+
+/* --- Tabel IRS --- */
+.irs-kode {
+    display: inline-block;
+    background: #eef4fa;
+    color: var(--primary-dark);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.irs-mk-nama {
+    font-weight: 600;
+    color: var(--secondary);
+}
+
+.irs-mk-sub {
+    font-size: 12px;
+    color: var(--gray-dark);
+    margin-top: 2px;
+}
+
+.irs-jadwal {
+    font-size: 12.5px;
+    color: #555;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* --- Empty state --- */
+.irs-empty {
+    text-align: center;
+    padding: 32px 20px;
+}
+
+.irs-empty i {
+    font-size: 26px;
+    color: #d5dbe1;
+    margin-bottom: 10px;
+    display: inline-block;
+}
+
+.irs-empty h4 {
+    color: var(--secondary);
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+
+.irs-empty p {
+    color: var(--gray-dark);
+    font-size: 13.5px;
+    max-width: 340px;
+    margin: 0 auto;
+}
+
+.irs-empty small {
+    display: block;
+    margin-top: 10px;
+    color: var(--gray-dark);
+}
+
+.irs-empty-compact {
+    padding: 30px 16px;
+}
+
+.irs-empty-compact i {
+    font-size: 22px;
+}
+
+/* --- Kartu paket --- */
+.irs-paket-card {
+    background: var(--white);
+    border: 1px solid #e3edf7;
+    border-top: 4px solid var(--primary);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px;
+    position: sticky;
+    top: 80px;
+}
+
+.irs-paket-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    margin-bottom: 16px;
+}
+
+.irs-paket-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--white);
+    font-size: 19px;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.irs-paket-head h3 {
+    font-size: 17px;
+    color: var(--secondary);
+    font-weight: 700;
+}
+
+.irs-paket-head p {
+    font-size: 12px;
+    color: var(--gray-dark);
+    margin-top: 3px;
+    line-height: 1.5;
+}
+
+.irs-paket-head p i {
+    width: 14px;
+    text-align: center;
+}
+
+.irs-paket-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f4f8fc;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 13px;
+    color: var(--secondary);
+    margin-bottom: 12px;
+}
+
+.irs-paket-meta strong {
+    font-size: 15px;
+}
+
+.irs-paket-meta-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #c4cdd6;
+}
+
+/* --- Daftar MK paket --- */
+.irs-paket-list {
+    list-style: none;
+    margin-bottom: 14px;
+}
+
+.irs-paket-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 2px;
+    border-bottom: 1px dashed #e8edf2;
+}
+
+.irs-paket-list li:last-child {
+    border-bottom: none;
+}
+
+.irs-paket-mk {
+    flex: 1;
+    font-size: 13.5px;
+    color: var(--secondary);
+    font-weight: 500;
+    min-width: 0;
+}
+
+.irs-sks-chip {
+    flex-shrink: 0;
+    background: #eef4fa;
+    color: var(--primary-dark);
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+/* --- Catatan / peringatan --- */
+.irs-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+}
+
+.irs-note i {
+    margin-top: 2px;
+}
+
+.irs-note-warning {
+    background: #fef5e7;
+    color: #935700;
+    border: 1px solid #f8ddba;
+}
+
+.irs-note-info {
+    background: #eef4fa;
+    color: #21618c;
+    border: 1px solid #d4e6f5;
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+
+/* --- Panduan bawah --- */
+.irs-guide {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    padding: 13px 20px;
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    font-size: 12.5px;
+    color: var(--gray-dark);
+}
+
+.irs-guide i {
+    color: var(--primary);
+    margin-right: 6px;
+}
+
+/* --- Responsif --- */
+@media (max-width: 1024px) {
+    .irs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .irs-paket-card {
+        position: static;
+    }
+
+    .irs-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .irs-toolbar-right {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 640px) {
+    .irs-toolbar {
+        padding: 12px 16px;
+    }
+
+    .irs-sks-track {
+        width: 60px;
+    }
+
+    .irs-paket-list li {
+        flex-wrap: wrap;
+    }
+
+    .irs-paket-mk {
+        flex-basis: calc(100% - 150px);
+    }
 }

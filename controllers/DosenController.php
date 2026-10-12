@@ -23,15 +23,15 @@ class DosenController {
     public function getDashboardStats() {
         $stats = [];
         
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) as total FROM courses WHERE dosen_id = ?");
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) as total FROM jadwal WHERE dosen_id = ?");
         $stmt->execute([$this->dosen_id]);
         $stats['total_kelas'] = $stmt->fetch()['total'];
         
         $stmt = $this->pdo->prepare("
             SELECT COUNT(DISTINCT irs.mahasiswa_id) as total
             FROM irs
-            JOIN courses c ON irs.course_id = c.id
-            WHERE c.dosen_id = ? AND irs.status = 'approved'
+            JOIN jadwal jd ON irs.course_id = jd.course_id
+            WHERE jd.dosen_id = ? AND irs.status = 'approved'
         ");
         $stmt->execute([$this->dosen_id]);
         $stats['total_mahasiswa'] = $stmt->fetch()['total'];
@@ -48,8 +48,8 @@ class DosenController {
         $stmt = $this->pdo->prepare("
             SELECT COUNT(DISTINCT p.mahasiswa_id) as total
             FROM presensi p
-            JOIN courses c ON p.course_id = c.id
-            WHERE c.dosen_id = ? AND p.tanggal = ?
+            JOIN jadwal jd ON p.course_id = jd.course_id
+            WHERE jd.dosen_id = ? AND p.tanggal = ?
         ");
         $stmt->execute([$this->dosen_id, $hariIni]);
         $stats['presensi_hari_ini'] = $stmt->fetch()['total'];
@@ -59,13 +59,17 @@ class DosenController {
     
     public function getJadwalMengajar() {
         $stmt = $this->pdo->prepare("
-            SELECT c.*, 
+            SELECT jd.*, c.kode_mk, c.nama_mk, c.sks, c.semester,
                    COUNT(DISTINCT irs.mahasiswa_id) as jumlah_mahasiswa
-            FROM courses c
-            LEFT JOIN irs ON c.id = irs.course_id AND irs.status = 'approved'
-            WHERE c.dosen_id = ?
-            GROUP BY c.id
-            ORDER BY FIELD(c.hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'), c.jam_mulai
+            FROM jadwal jd
+            JOIN courses c ON jd.course_id = c.id
+            LEFT JOIN irs ON jd.course_id = irs.course_id AND irs.status = 'approved'
+            WHERE jd.dosen_id = ?
+            GROUP BY jd.id, jd.course_id, jd.dosen_id, jd.tingkat, jd.rombel, jd.hari,
+                     jd.jam_mulai, jd.jam_selesai, jd.ruang, jd.kapasitas,
+                     jd.tahun_ajaran, jd.semester_ke, jd.created_at, jd.updated_at,
+                     c.kode_mk, c.nama_mk, c.sks, c.semester
+            ORDER BY FIELD(jd.hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'), jd.jam_mulai
         ");
         $stmt->execute([$this->dosen_id]);
         return $stmt->fetchAll();
@@ -74,13 +78,17 @@ class DosenController {
     public function getJadwalHariIni() {
         $hari = $this->getHariIndonesia(date('N'));
         $stmt = $this->pdo->prepare("
-            SELECT c.*, 
+            SELECT jd.*, c.kode_mk, c.nama_mk, c.sks, c.semester,
                    COUNT(DISTINCT irs.mahasiswa_id) as jumlah_mahasiswa
-            FROM courses c
-            LEFT JOIN irs ON c.id = irs.course_id AND irs.status = 'approved'
-            WHERE c.dosen_id = ? AND c.hari = ?
-            GROUP BY c.id
-            ORDER BY c.jam_mulai ASC
+            FROM jadwal jd
+            JOIN courses c ON jd.course_id = c.id
+            LEFT JOIN irs ON jd.course_id = irs.course_id AND irs.status = 'approved'
+            WHERE jd.dosen_id = ? AND jd.hari = ?
+            GROUP BY jd.id, jd.course_id, jd.dosen_id, jd.tingkat, jd.rombel, jd.hari,
+                     jd.jam_mulai, jd.jam_selesai, jd.ruang, jd.kapasitas,
+                     jd.tahun_ajaran, jd.semester_ke, jd.created_at, jd.updated_at,
+                     c.kode_mk, c.nama_mk, c.sks, c.semester
+            ORDER BY jd.jam_mulai ASC
         ");
         $stmt->execute([$this->dosen_id, $hari]);
         return $stmt->fetchAll();
@@ -97,12 +105,87 @@ class DosenController {
             SELECT c.*, 
                    COUNT(DISTINCT irs.mahasiswa_id) as jumlah_mahasiswa
             FROM courses c
+            JOIN jadwal jd ON jd.course_id = c.id AND jd.dosen_id = ?
             LEFT JOIN irs ON c.id = irs.course_id AND irs.status = 'approved'
-            WHERE c.dosen_id = ?
-            GROUP BY c.id
+            GROUP BY c.id, c.kode_mk, c.nama_mk, c.sks, c.semester, c.jurusan_id, c.deskripsi,
+                     c.created_at, c.updated_at
             ORDER BY c.kode_mk ASC
         ");
         $stmt->execute([$this->dosen_id]);
+        return $stmt->fetchAll();
+    }
+    
+    // ============================================
+    // LAPORAN NILAI MAHASISWA YANG DIAMPU
+    // ============================================
+    
+    /**
+     * List mata kuliah + semester yang pernah diampu dosen ini (untuk dropdown filter).
+     */
+    public function getMatakuliahDenganSemester() {
+        $stmt = $this->pdo->prepare("
+            SELECT DISTINCT c.id, c.kode_mk, c.nama_mk, c.sks, g.semester
+            FROM courses c
+            JOIN jadwal jd ON jd.course_id = c.id AND jd.dosen_id = ?
+            JOIN grades g ON g.course_id = c.id
+            ORDER BY c.kode_mk ASC, g.semester ASC
+        ");
+        $stmt->execute([$this->dosen_id]);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Nilai semua mahasiswa pada mata kuliah yang diampu dosen ini.
+     * Filter opsional: course_id dan/atau semester.
+     * Rumus nilai final konsisten dengan KHS: nilai komponen 75% + kehadiran 25%.
+     */
+    public function getLaporanNilaiMahasiswaAmpu($course_id = null, $semester = null) {
+        $sql = "
+            SELECT 
+                g.id, c.kode_mk, c.nama_mk, c.sks, g.semester,
+                g.nilai_tugas, g.nilai_uts, g.nilai_uas, g.nilai_akhir,
+                g.status_verifikasi,
+                m.nim, u.nama as mahasiswa_nama, j.nama as program_studi,
+                COALESCE(p.total, 0) as total_pertemuan,
+                COALESCE(p.hadir, 0) as p_hadir,
+                COALESCE(p.izin, 0) as p_izin,
+                COALESCE(p.sakit, 0) as p_sakit,
+                COALESCE(p.alpa, 0) as p_alpa
+            FROM grades g
+            JOIN courses c ON g.course_id = c.id
+            JOIN jadwal jd ON jd.course_id = c.id AND jd.dosen_id = ?
+            JOIN mahasiswa m ON g.mahasiswa_id = m.id
+            JOIN users u ON m.user_id = u.id
+            LEFT JOIN jurusan j ON m.jurusan_id = j.id
+            LEFT JOIN (
+                SELECT course_id, mahasiswa_id, COUNT(*) as total,
+                    SUM(CASE WHEN status = 'hadir' THEN 1 ELSE 0 END) as hadir,
+                    SUM(CASE WHEN status = 'izin' THEN 1 ELSE 0 END) as izin,
+                    SUM(CASE WHEN status = 'sakit' THEN 1 ELSE 0 END) as sakit,
+                    SUM(CASE WHEN status = 'alpa' THEN 1 ELSE 0 END) as alpa
+                FROM presensi GROUP BY course_id, mahasiswa_id
+            ) p ON p.course_id = g.course_id AND p.mahasiswa_id = g.mahasiswa_id
+            WHERE 1=1
+        ";
+        $params = [$this->dosen_id];
+        
+        if ($course_id) {
+            $sql .= " AND g.course_id = ?";
+            $params[] = $course_id;
+        }
+        
+        if ($semester) {
+            $sql .= " AND g.semester = ?";
+            $params[] = $semester;
+        }
+        
+        $sql .= " GROUP BY g.id, c.kode_mk, c.nama_mk, c.sks, g.semester, g.nilai_tugas, g.nilai_uts,
+                          g.nilai_uas, g.nilai_akhir, g.status_verifikasi, m.nim, u.nama, j.nama,
+                          p.total, p.hadir, p.izin, p.sakit, p.alpa
+                  ORDER BY c.kode_mk ASC, g.semester ASC, m.nim ASC";
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
     
@@ -327,7 +410,8 @@ class DosenController {
                 g.nilai_uts,
                 g.nilai_uas,
                 g.nilai_akhir,
-                g.status_verifikasi
+                g.status_verifikasi,
+                g.catatan
             FROM mahasiswa m
             JOIN users u ON m.user_id = u.id
             JOIN irs ON m.id = irs.mahasiswa_id
@@ -354,6 +438,14 @@ class DosenController {
                 $nilai_uas = floatval($nilai['uas'] ?? 0);
                 $nilai_akhir = ($nilai_tugas * 0.3) + ($nilai_uts * 0.3) + ($nilai_uas * 0.4);
                 
+                // Simpan ulang akan menghapus catatan pengembalian admin (nilai diperbaiki dosen)
+                
+                // Nilai otomatis terverifikasi, KECUALI ada komponen bernilai 0
+                // (nilai 0 dianggap perlu konfirmasi Admin sebelum tampil ke mahasiswa)
+                $status_verifikasi = ($nilai_tugas == 0 || $nilai_uts == 0 || $nilai_uas == 0) 
+                    ? 'draft' 
+                    : 'verified';
+                
                 $stmt = $this->pdo->prepare("
                     SELECT id FROM grades 
                     WHERE mahasiswa_id = ? AND course_id = ? AND semester = ?
@@ -367,23 +459,24 @@ class DosenController {
                             nilai_uts = ?,
                             nilai_uas = ?,
                             nilai_akhir = ?,
-                            status_verifikasi = 'draft'
+                            status_verifikasi = ?,
+                            catatan = NULL
                         WHERE mahasiswa_id = ? AND course_id = ? AND semester = ?
                     ");
                     $stmt->execute([
-                        $nilai_tugas, $nilai_uts, $nilai_uas, $nilai_akhir,
+                        $nilai_tugas, $nilai_uts, $nilai_uas, $nilai_akhir, $status_verifikasi,
                         $mahasiswa_id, $data['course_id'], $data['semester']
                     ]);
                 } else {
                     $stmt = $this->pdo->prepare("
                         INSERT INTO grades (
                             mahasiswa_id, course_id, semester,
-                            nilai_tugas, nilai_uts, nilai_uas, nilai_akhir
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                            nilai_tugas, nilai_uts, nilai_uas, nilai_akhir, status_verifikasi
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ");
                     $stmt->execute([
                         $mahasiswa_id, $data['course_id'], $data['semester'],
-                        $nilai_tugas, $nilai_uts, $nilai_uas, $nilai_akhir
+                        $nilai_tugas, $nilai_uts, $nilai_uas, $nilai_akhir, $status_verifikasi
                     ]);
                 }
             }
@@ -513,6 +606,175 @@ class DosenController {
             return ['success' => true, 'id' => $this->pdo->lastInsertId()];
         } catch (PDOException $e) {
             return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Kirim broadcast pengumuman via email ke mahasiswa sesuai target.
+     * Dipanggil dari public/dosen/broadcast.php (checkbox "kirim via email")
+     * setelah pengumuman tersimpan di tabel announcements.
+     */
+    public function kirimBroadcastViaEmail($announcement_id) {
+        try {
+            // Ambil data pengumuman
+            $stmt = $this->pdo->prepare("
+                SELECT a.*, u.nama as sender_name
+                FROM announcements a
+                JOIN users u ON a.sender_id = u.id
+                WHERE a.id = ?
+            ");
+            $stmt->execute([$announcement_id]);
+            $announcement = $stmt->fetch();
+            
+            if (!$announcement) {
+                return ['success' => false, 'sent' => 0, 'failed' => 0, 'message' => 'Pengumuman tidak ditemukan'];
+            }
+            
+            // Penerima: mahasiswa sesuai target (target_role dosen = mahasiswa kelas dosen ini)
+            if ($announcement['target_role'] === 'mahasiswa') {
+                // Semua mahasiswa yang diampu dosen ini (IRS approved pada MK dosen)
+                $stmt = $this->pdo->prepare("
+                    SELECT DISTINCT u.nama, u.email
+                    FROM users u
+                    JOIN mahasiswa m ON m.user_id = u.id
+                    JOIN irs i ON i.mahasiswa_id = m.id AND i.status = 'approved'
+                    JOIN jadwal jd ON jd.course_id = i.course_id
+                    JOIN dosen d ON d.id = jd.dosen_id
+                    WHERE d.id = ? AND u.email IS NOT NULL AND u.email != ''
+                ");
+                $stmt->execute([$this->dosen_id]);
+            } else {
+                // 'all' atau role lain
+                $sql = "SELECT nama, email FROM users WHERE role = 'mahasiswa' AND email IS NOT NULL AND email != ''";
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute();
+            }
+            
+            $recipients = $stmt->fetchAll();
+            
+            if (empty($recipients)) {
+                return ['success' => true, 'sent' => 0, 'failed' => 0, 'message' => 'Tidak ada mahasiswa dengan email'];
+            }
+            
+            require_once __DIR__ . '/../helper/EmailHelper.php';
+            require_once __DIR__ . '/../template/email/broadcast.php';
+            
+            $emailHelper = new EmailHelper();
+            $sent = 0;
+            $failed = 0;
+            
+            foreach ($recipients as $r) {
+                $body = renderBroadcastEmail([
+                    'nama'        => $r['nama'],
+                    'judul'       => $announcement['judul'],
+                    'pesan'       => $announcement['pesan'],
+                    'priority'    => $announcement['priority'],
+                    'sender_name' => $announcement['sender_name'],
+                    'sender_role' => $announcement['sender_role']
+                ]);
+                
+                $result = $emailHelper->send(
+                    $r['email'],
+                    $r['nama'],
+                    'Pengumuman: ' . $announcement['judul'],
+                    $body
+                );
+                
+                if ($result['success']) $sent++;
+                else $failed++;
+            }
+            
+            return [
+                'success' => true,
+                'sent'    => $sent,
+                'failed'  => $failed,
+                'message' => "Email terkirim ke {$sent} mahasiswa" . ($failed > 0 ? ", {$failed} gagal" : '')
+            ];
+            
+        } catch (PDOException $e) {
+            return ['success' => false, 'sent' => 0, 'failed' => 0, 'message' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Kirim kode/token presensi aktif via email ke semua mahasiswa
+     * yang mengambil mata kuliah tersebut (IRS approved).
+     Taxahorn dan dipanggil dari public/dosen/presensi.php (tombol "Kirim Token via Email").
+     */
+    public function kirimTokenPresensiViaEmail($course_id) {
+        try {
+            // Ambil sesi presensi aktif untuk MK ini
+            $stmt = $this->pdo->prepare("
+                SELECT ps.*, c.kode_mk, c.nama_mk, u.nama as dosen_nama
+                FROM presensi_sessions ps
+                JOIN courses c ON ps.course_id = c.id
+                JOIN dosen d ON d.id = ps.dosen_id
+                JOIN users u ON u.id = d.user_id
+                WHERE ps.course_id = ? AND ps.is_active = 1
+                    AND ps.waktu_mulai > DATE_SUB(NOW(), INTERVAL 30 MINUTE)
+                ORDER BY ps.waktu_mulai DESC
+                LIMIT 1
+            ");
+            $stmt->execute([$course_id]);
+            $sesi = $stmt->fetch();
+            
+            if (!$sesi) {
+                return ['success' => false, 'sent' => 0, 'failed' => 0, 'message' => 'Tidak ada sesi presensi aktif untuk MK ini'];
+            }
+            
+            // Ambil daftar mahasiswa yang mengambil MK ini (IRS approved)
+            $stmt = $this->pdo->prepare("
+                SELECT u.nama, u.email
+                FROM users u
+                JOIN mahasiswa m ON m.user_id = u.id
+                JOIN irs i ON i.mahasiswa_id = m.id AND i.status = 'approved'
+                WHERE i.course_id = ?
+                    AND u.email IS NOT NULL AND u.email != ''
+            ");
+            $stmt->execute([$course_id]);
+            $recipients = $stmt->fetchAll();
+            
+            if (empty($recipients)) {
+                return ['success' => true, 'sent' => 0, 'failed' => 0, 'message' => 'Tidak ada mahasiswa dengan email di MK ini'];
+            }
+            
+            require_once __DIR__ . '/../helper/EmailHelper.php';
+            require_once __DIR__ . '/../template/email/token_presensi.php';
+            
+            $emailHelper = new EmailHelper();
+            $sent = 0;
+            $failed = 0;
+            
+            foreach ($recipients as $r) {
+                $body = renderTokenPresensi([
+                    'nama'       => $r['nama'],
+                    'kode_mk'    => $sesi['kode_mk'],
+                    'nama_mk'    => $sesi['nama_mk'],
+                    'kode'       => $sesi['kode'],
+                    'tanggal'    => date('d-m-Y', strtotime($sesi['tanggal'])),
+                    'dosen_nama' => $sesi['dosen_nama']
+                ]);
+                
+                $result = $emailHelper->send(
+                    $r['email'],
+                    $r['nama'],
+                    'Token Presensi ' . $sesi['kode_mk'] . ' - Kode: ' . $sesi['kode'],
+                    $body
+                );
+                
+                if ($result['success']) $sent++;
+                else $failed++;
+            }
+            
+            return [
+                'success' => true,
+                'sent'    => $sent,
+                'failed'  => $failed,
+                'message' => "Token terkirim ke {$sent} mahasiswa" . ($failed > 0 ? ", {$failed} gagal" : '')
+            ];
+            
+        } catch (PDOException $e) {
+            return ['success' => false, 'sent' => 0, 'failed' => 0, 'message' => $e->getMessage()];
         }
     }
     

@@ -10,7 +10,7 @@
     </div>
 </div>
 
-<script src="/simak_app/public/assets/js/app.js"></script>
+<script src="/simak_app/public/assets/js/app.js?v=2"></script>
 
 <?php 
 $flash = getFlashMessage(); 

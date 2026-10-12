@@ -58,7 +58,7 @@ include __DIR__ . '/../../includes/header.php';
                 </option>
             <?php endforeach; ?>
         </select>
-        <input type="text" name="semester" value="<?= $semester ?>" placeholder="Semester (contoh: 20241)" style="padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px;">
+        <input type="text" name="semester" value="<?= $semester ?>" placeholder="Semester (contoh: 1)" style="padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px;">
         <button type="submit" class="btn btn-primary">Tampilkan</button>
     </form>
 </div>
@@ -131,9 +131,14 @@ include __DIR__ . '/../../includes/header.php';
                                     <i class="fas fa-check-circle"></i> Terverifikasi
                                 </span>
                             <?php else: ?>
-                                <span class="status-badge" style="background: #f39c12; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
-                                    <i class="fas fa-pencil-alt"></i> Draft
+                                <span class="status-badge" style="background: #e74c3c; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                                    <i class="fas fa-undo"></i> Dikembalikan Admin
                                 </span>
+                                <?php if (!empty($mn['catatan'])): ?>
+                                    <div style="font-size: 12px; color: #c0392b; margin-top: 4px; max-width: 200px;">
+                                        <i class="fas fa-comment-dots"></i> <?= htmlspecialchars($mn['catatan']) ?>
+                                    </div>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -144,7 +149,7 @@ include __DIR__ . '/../../includes/header.php';
         <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Nilai</button>
             <small style="color: #7f8c8d; align-self: center;">
-                * Nilai akan disimpan sebagai Draft dan perlu diverifikasi oleh Admin
+                * Nilai langsung terverifikasi otomatis setelah disimpan. Jika menginput nilai 0 (tugas/UTS/UAS), nilai tersebut perlu diverifikasi Admin terlebih dahulu.
             </small>
         </div>
     </form>

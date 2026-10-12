@@ -23,8 +23,8 @@ $initial = strtoupper(substr($nama, 0, 1));
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIMAK - <?= ucfirst($role) ?> Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="/simak_app/public/assets/css/style.css">
+    <link rel="stylesheet" href="/simak_app/public/assets/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/simak_app/public/assets/css/style.css?v=4">
     <link rel="icon" href="/simak_app/public/assets/favicon.ico" type="image/x-icon">
 </head>
 <body>
@@ -51,61 +51,85 @@ $initial = strtoupper(substr($nama, 0, 1));
                         <i class="fas fa-chart-pie"></i> Dashboard
                     </a>
                 </li>
-                <li>
-                    <a href="/simak_app/public/admin/mahasiswa.php" class="<?= $current_page === 'mahasiswa.php' ? 'active' : '' ?>">
-                        <i class="fas fa-user-graduate"></i> Mahasiswa
+                
+                <!-- DROPDOWN: MASTER DATA -->
+                <?php 
+                $master_pages = ['mahasiswa.php', 'dosen.php', 'matakuliah.php', 'jadwal.php', 'fakultas.php', 'jurusan.php'];
+                $monitoring_pages = ['validasi_irs.php', 'verifikasi_nilai.php'];
+                $laporan_pages = ['laporan.php', 'cetak_pdf.php'];
+                ?>
+                <li class="has-submenu <?= in_array($current_page, $master_pages) ? 'open active' : '' ?>">
+                    <a href="javascript:void(0)" class="submenu-toggle">
+                        <i class="fas fa-database"></i> Master Data
+                        <i class="fas fa-chevron-right arrow"></i>
                     </a>
-                </li>
-                <li>
-                    <a href="/simak_app/public/admin/dosen.php" class="<?= $current_page === 'dosen.php' ? 'active' : '' ?>">
-                        <i class="fas fa-chalkboard-teacher"></i> Dosen
-                    </a>
-                </li>
-                <li>
-                    <a href="/simak_app/public/admin/matakuliah.php" class="<?= $current_page === 'matakuliah.php' ? 'active' : '' ?>">
-                        <i class="fas fa-book-open"></i> Mata Kuliah
-                    </a>
-                </li>
-                <li>
-                    <a href="/simak_app/public/admin/validasi_irs.php" class="<?= $current_page === 'validasi_irs.php' ? 'active' : '' ?>">
-                        <i class="fas fa-check-double"></i> Validasi IRS
-                        <?php 
-                        $stmt = $pdo->query("SELECT COUNT(*) as total FROM irs WHERE status = 'pending'");
-                        $pending = $stmt->fetch()['total'];
-                        if ($pending > 0): 
-                        ?>
-                            <span class="badge"><?= $pending ?></span>
-                        <?php endif; ?>
-                    </a>
-                </li>
-                <li>
-                    <a href="/simak_app/public/admin/verifikasi_nilai.php" class="<?= $current_page === 'verifikasi_nilai.php' ? 'active' : '' ?>">
-                        <i class="fas fa-clipboard-check"></i> Verifikasi Nilai
-                        <?php 
-                        $stmt = $pdo->query("SELECT COUNT(*) as total FROM grades WHERE status_verifikasi = 'draft'");
-                        $draft = $stmt->fetch()['total'];
-                        if ($draft > 0): 
-                        ?>
-                            <span class="badge"><?= $draft ?></span>
-                        <?php endif; ?>
-                    </a>
+                    <ul class="submenu">
+                        <li>
+                            <a href="/simak_app/public/admin/mahasiswa.php" class="<?= $current_page === 'mahasiswa.php' ? 'active' : '' ?>">
+                                <i class="fas fa-user-graduate"></i> Mahasiswa
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/simak_app/public/admin/dosen.php" class="<?= $current_page === 'dosen.php' ? 'active' : '' ?>">
+                                <i class="fas fa-chalkboard-teacher"></i> Dosen
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/simak_app/public/admin/matakuliah.php" class="<?= $current_page === 'matakuliah.php' ? 'active' : '' ?>">
+                                <i class="fas fa-book-open"></i> Mata Kuliah
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/simak_app/public/admin/jadwal.php" class="<?= $current_page === 'jadwal.php' ? 'active' : '' ?>">
+                                <i class="fas fa-calendar-alt"></i> Jadwal
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/simak_app/public/admin/fakultas.php" class="<?= $current_page === 'fakultas.php' ? 'active' : '' ?>">
+                                <i class="fas fa-university"></i> Fakultas
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/simak_app/public/admin/jurusan.php" class="<?= $current_page === 'jurusan.php' ? 'active' : '' ?>">
+                                <i class="fas fa-book"></i> Jurusan
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 
-                <!-- MENU LAPORAN AKADEMIK -->
-                <li>
-                    <a href="/simak_app/public/admin/laporan.php" class="<?= strpos($current_page, 'laporan') !== false ? 'active' : '' ?>">
+                <!-- DROPDOWN: PERSETUJUAN & VERIFIKASI -->
+                <li class="has-submenu <?= in_array($current_page, $monitoring_pages) ? 'open active' : '' ?>">
+                    <a href="javascript:void(0)" class="submenu-toggle">
+                        <i class="fas fa-check-double"></i> Persetujuan
+                        <i class="fas fa-chevron-right arrow"></i>
+                    </a>
+                    <ul class="submenu">
+                        <li>
+                            <a href="/simak_app/public/admin/validasi_irs.php" class="<?= $current_page === 'validasi_irs.php' ? 'active' : '' ?>">
+                                <i class="fas fa-file-signature"></i> Validasi IRS
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/simak_app/public/admin/verifikasi_nilai.php" class="<?= $current_page === 'verifikasi_nilai.php' ? 'active' : '' ?>">
+                                <i class="fas fa-clipboard-check"></i> Verifikasi Nilai 0
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                
+                <!-- DROPDOWN: LAPORAN -->
+                <li class="has-submenu <?= in_array($current_page, $laporan_pages) ? 'open active' : '' ?>">
+                    <a href="javascript:void(0)" class="submenu-toggle">
                         <i class="fas fa-file-alt"></i> Laporan
+                        <i class="fas fa-chevron-right arrow"></i>
                     </a>
-                </li>
-                <li>
-                    <a href="/simak_app/public/admin/fakultas.php" class="<?= $current_page === 'fakultas.php' ? 'active' : '' ?>">
-                        <i class="fas fa-university"></i> Fakultas
-                    </a>
-                </li>
-                <li>
-                    <a href="/simak_app/public/admin/jurusan.php" class="<?= $current_page === 'jurusan.php' ? 'active' : '' ?>">
-                        <i class="fas fa-book"></i> Jurusan
-                    </a>
+                    <ul class="submenu">
+                        <li>
+                            <a href="/simak_app/public/admin/laporan.php" class="<?= strpos($current_page, 'laporan') !== false ? 'active' : '' ?>">
+                                <i class="fas fa-table"></i> Laporan Akademik
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 
                 <li>
@@ -136,6 +160,11 @@ $initial = strtoupper(substr($nama, 0, 1));
                     </a>
                 </li>
                 <li>
+                    <a href="/simak_app/public/dosen/laporan_nilai.php" class="<?= $current_page === 'laporan_nilai.php' ? 'active' : '' ?>">
+                        <i class="fas fa-chart-bar"></i> Laporan Nilai
+                    </a>
+                </li>
+                <li>
                     <a href="/simak_app/public/dosen/tugas.php" class="<?= $current_page === 'tugas.php' ? 'active' : '' ?>">
                         <i class="fas fa-tasks"></i> Tugas
                     </a>
@@ -160,27 +189,6 @@ $initial = strtoupper(substr($nama, 0, 1));
                 <li>
                     <a href="/simak_app/public/mahasiswa/tugas.php" class="<?= $current_page === 'tugas.php' ? 'active' : '' ?>">
                         <i class="fas fa-tasks"></i> Tugas
-                        <?php 
-                        $stmt = $pdo->prepare("
-                            SELECT COUNT(*) as total
-                            FROM tasks t
-                            JOIN irs i ON t.course_id = i.course_id
-                            JOIN mahasiswa m ON i.mahasiswa_id = m.id
-                            WHERE m.user_id = ? 
-                                AND t.deadline > NOW()
-                                AND t.deadline < DATE_ADD(NOW(), INTERVAL 2 DAY)
-                                AND i.status = 'approved'
-                                AND NOT EXISTS (
-                                    SELECT 1 FROM task_submissions ts 
-                                    WHERE ts.task_id = t.id AND ts.mahasiswa_id = m.id
-                                )
-                        ");
-                        $stmt->execute([$_SESSION['user_id']]);
-                        $urgent = $stmt->fetch()['total'];
-                        if ($urgent > 0): 
-                        ?>
-                            <span class="badge"><?= $urgent ?></span>
-                        <?php endif; ?>
                     </a>
                 </li>
                 <li>
@@ -191,6 +199,16 @@ $initial = strtoupper(substr($nama, 0, 1));
                 <li>
                     <a href="/simak_app/public/mahasiswa/khs.php" class="<?= $current_page === 'khs.php' ? 'active' : '' ?>">
                         <i class="fas fa-star"></i> KHS & IPK
+                    </a>
+                </li>
+                <li>
+                    <a href="/simak_app/public/mahasiswa/report_krs.php" class="<?= $current_page === 'report_krs.php' ? 'active' : '' ?>">
+                        <i class="fas fa-id-card"></i> Report KRS
+                    </a>
+                </li>
+                <li>
+                    <a href="/simak_app/public/mahasiswa/report_nilai.php" class="<?= $current_page === 'report_nilai.php' ? 'active' : '' ?>">
+                        <i class="fas fa-chart-line"></i> Report Nilai
                     </a>
                 </li>
                 <li>

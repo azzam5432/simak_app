@@ -1,13 +1,13 @@
 <?php
 // ============================================
 // public/admin/laporan.php
-// Laporan Akademik - Versi 1 File dengan Tab
+// Laporan Akademik - Tab Nilai / IRS / Presensi / Mahasiswa
 // ============================================
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../controllers/LaporanController.php';
-require_once __DIR__ . '/../../includes/ExcelExport.php';
+require_once __DIR__ . '/../../controllers/MahasiswaController.php';
 
 checkAccess(['admin']);
 
@@ -17,75 +17,9 @@ $laporanController = new LaporanController($pdo);
 $matakuliah = $laporanController->getMatakuliahList();
 
 // ============================================
-// EXPORT EXCEL HANDLER
-// ============================================
-if (isset($_GET['export'])) {
-    $type = $_GET['export'];
-    $filename = '';
-    $headers = [];
-    $data = [];
-    $sheetName = 'Laporan';
-    
-    switch ($type) {
-        case 'nilai':
-            $course_id = $_GET['course_id'] ?? null;
-            $semester = $_GET['semester'] ?? null;
-            $laporan = $laporanController->getLaporanNilai($course_id, $semester);
-            $filename = 'laporan_nilai_' . date('Ymd_His') . '.xlsx';
-            $sheetName = 'Laporan Nilai';
-            $headers = ['NIM', 'Mahasiswa', 'Prodi', 'Kode MK', 'Mata Kuliah', 'SKS', 'Semester', 'Tugas', 'UTS', 'UAS', 'Nilai Akhir', 'Status'];
-            foreach ($laporan as $row) {
-                $data[] = [$row['nim'], $row['mahasiswa_nama'], $row['program_studi'], $row['kode_mk'], $row['nama_mk'], (int)$row['sks'], $row['semester'], $row['nilai_tugas'] !== null ? (float)$row['nilai_tugas'] : null, $row['nilai_uts'] !== null ? (float)$row['nilai_uts'] : null, $row['nilai_uas'] !== null ? (float)$row['nilai_uas'] : null, $row['nilai_akhir'] !== null ? (float)$row['nilai_akhir'] : null, $row['status_verifikasi']];
-            }
-            break;
-            
-        case 'irs':
-            $semester = $_GET['semester'] ?? null;
-            $status = $_GET['status'] ?? null;
-            $laporan = $laporanController->getLaporanIRS($semester, $status);
-            $filename = 'laporan_irs_' . date('Ymd_His') . '.xlsx';
-            $sheetName = 'Laporan IRS';
-            $headers = ['NIM', 'Mahasiswa', 'Prodi', 'Kode MK', 'Mata Kuliah', 'SKS', 'Semester', 'Status', 'Tanggal'];
-            foreach ($laporan as $row) {
-                $data[] = [$row['nim'], $row['mahasiswa_nama'], $row['program_studi'], $row['kode_mk'], $row['nama_mk'], (int)$row['sks'], $row['semester'], $row['status'], date('d-m-Y', strtotime($row['created_at']))];
-            }
-            break;
-            
-        case 'presensi':
-            $course_id = $_GET['course_id'] ?? null;
-            $laporan = $laporanController->getLaporanPresensi($course_id);
-            $filename = 'laporan_presensi_' . date('Ymd_His') . '.xlsx';
-            $sheetName = 'Laporan Presensi';
-            $headers = ['Kode MK', 'Mata Kuliah', 'NIM', 'Mahasiswa', 'Hadir', 'Izin', 'Sakit', 'Alpa', 'Total', 'Persentase (%)'];
-            foreach ($laporan as $row) {
-                $data[] = [$row['kode_mk'], $row['nama_mk'], $row['nim'], $row['mahasiswa_nama'], (int)$row['hadir'], (int)$row['izin'], (int)$row['sakit'], (int)$row['alpa'], (int)$row['total_pertemuan'], (float)$row['persentase_hadir']];
-            }
-            break;
-            
-        case 'mahasiswa':
-            $jurusan_id = $_GET['jurusan_id'] ?? null;
-            $laporan = $laporanController->getLaporanMahasiswa($jurusan_id);
-            $filename = 'laporan_mahasiswa_' . date('Ymd_His') . '.xlsx';
-            $sheetName = 'Laporan Mahasiswa';
-            $headers = ['NIM', 'Nama', 'Email', 'Prodi', 'Angkatan', 'Semester', 'Total SKS', 'IPK'];
-            foreach ($laporan as $row) {
-                $data[] = [$row['nim'], $row['mahasiswa_nama'], $row['email'], $row['program_studi'], (int)$row['angkatan'], (int)$row['semester'], (int)$row['total_sks'], (float)($row['ipk'] ?? 0)];
-            }
-            break;
-    }
-    
-    if ($filename) {
-        $excel = new ExcelExport('Laporan Akademik SIMAK');
-        $excel->addSheet($sheetName, $headers, $data);
-        $excel->download($filename);
-    }
-    exit();
-}
-
-// ============================================
 // AMBIL DATA BERDASARKAN TAB AKTIF
 // ============================================
-$tab = $_GET['tab'] ?? 'nilai';
+$tab = in_array($_GET['tab'] ?? '', ['nilai', 'rekap_nilai', 'irs', 'presensi', 'mahasiswa'], true) ? $_GET['tab'] : 'nilai';
 $stats_umum = $laporanController->getStatistikUmum();
 
 // Data untuk dropdown
@@ -93,19 +27,85 @@ $semesters = $laporanController->getSemesterList();
 $prodi_list = $laporanController->getProgramStudiList();
 
 // Filter
-$course_id = $_GET['course_id'] ?? null;
-$semester = $_GET['semester'] ?? null;
-$status = $_GET['status'] ?? null;
-$jurusan_id = $_GET['jurusan_id'] ?? null;
+$course_id = intval($_GET['course_id'] ?? 0) ?: null;
+$semester = trim($_GET['semester'] ?? '');
+$semester = $semester !== '' ? $semester : null;
+$status = trim($_GET['status'] ?? '');
+$status = in_array($status, ['pending', 'approved', 'rejected'], true) ? $status : null;
+$jurusan_id = intval($_GET['jurusan_id'] ?? 0) ?: null;
+$mahasiswa_id = intval($_GET['mahasiswa_id'] ?? 0) ?: null;
 
 // Data sesuai tab
 $data = [];
 $statistik = [];
+$rekap_irs = [];
 
 switch ($tab) {
     case 'nilai':
         $data = $laporanController->getLaporanNilai($course_id, $semester);
         $statistik = $laporanController->getStatistikNilai($course_id);
+        break;
+    case 'rekap_nilai':
+        $mahasiswa_list = $laporanController->getMahasiswaList();
+        // Pastikan mahasiswa yang dipilih valid (exists)
+        if ($mahasiswa_id) {
+            $found = false;
+            foreach ($mahasiswa_list as $m) {
+                if (intval($m['id']) === intval($mahasiswa_id)) { $found = true; break; }
+            }
+            if (!$found) $mahasiswa_id = null;
+        }
+        $semester_options = [];
+        $ips_data = [];
+        $ipk_mahasiswa = null;
+        $mhs_info = null;
+        
+        if ($mahasiswa_id) {
+            require_once __DIR__ . '/../../controllers/LaporanController.php';
+            $mhsController = new MahasiswaController($pdo, $mahasiswa_id);
+            $nilai_rows = $mhsController->getKHS(null); // semua semester
+            $semester_options = $mhsController->getSemestersWithGrades();
+            
+            // Info mahasiswa
+            foreach ($mahasiswa_list as $m) {
+                if (intval($m['id']) === intval($mahasiswa_id)) { $mhs_info = $m; break; }
+            }
+            
+            // Filter rows per semester jika dipilih
+            if ($semester) {
+                $nilai_rows = array_values(array_filter($nilai_rows, function($r) use ($semester) {
+                    return $r['semester'] == $semester;
+                }));
+            }
+            
+            // IPS per semester (selalu dari semua data)
+            $ips_data = LaporanController::agregasiPerSemester($nilai_rows);
+            
+            // Hitung IPK dari baris yang tampil
+            if ($semester) {
+                // hanya semester terpilih -> berarti ini IPS
+                $ipk_mahasiswa = $ips_data[$semester]['ips'] ?? 0;
+            } else {
+                // semua semester -> IPK
+                $total_sks = 0; $total_bobot = 0.0;
+                foreach ($nilai_rows as $r) {
+                    $tp = intval($r['total_pertemuan']);
+                    $kh = ($tp > 0) ? ((intval($r['p_hadir']) + intval($r['p_izin']) + intval($r['p_sakit'])) / $tp) * 100 : null;
+                    $nf = LaporanController::hitungNilaiFinal(floatval($r['nilai_akhir']), $kh);
+                    $b = LaporanController::nilaiKeBobot($nf);
+                    $total_sks += intval($r['sks']);
+                    $total_bobot += ($b * intval($r['sks']));
+                }
+                $ipk_mahasiswa = ($total_sks > 0) ? round($total_bobot / $total_sks, 2) : 0;
+            }
+            
+            // Gabungkan jumlah_mk per IPS data
+            $jumlah_mk_per_sem = [];
+            foreach ($nilai_rows as $r) {
+                $jumlah_mk_per_sem[$r['semester']] = ($jumlah_mk_per_sem[$r['semester']] ?? 0) + 1;
+            }
+        }
+        $data = $nilai_rows ?? [];
         break;
     case 'irs':
         $data = $laporanController->getLaporanIRS($semester, $status);
@@ -121,21 +121,37 @@ switch ($tab) {
         break;
 }
 
-// Helper: Nilai ke Huruf
+// Helper: Nilai ke Huruf (null-safe)
 function nilaiHuruf($nilai) {
-    if ($nilai >= 85) return ['A', '#2ecc71'];
-    elseif ($nilai >= 75) return ['B', '#3498db'];
-    elseif ($nilai >= 65) return ['C', '#f39c12'];
-    elseif ($nilai >= 50) return ['D', '#e67e22'];
-    else return ['E', '#e74c3c'];
+    if ($nilai === null || $nilai === '') return ['-', '#95a5a6'];
+    if ($nilai >= 85) return ['A', '#27ae60'];
+    elseif ($nilai >= 75) return ['B', '#2980b9'];
+    elseif ($nilai >= 65) return ['C', '#d68910'];
+    elseif ($nilai >= 50) return ['D', '#ca6f1e'];
+    else return ['E', '#c0392b'];
 }
 
-// Helper: Status Color
-$status_color = [
-    'pending' => '#f39c12',
-    'approved' => '#2ecc71',
-    'rejected' => '#e74c3c'
-];
+// Helper: Format angka aman dari null
+function fmtNilai($nilai, $desimal = 1) {
+    return $nilai !== null ? number_format((float)$nilai, $desimal) : '–';
+}
+
+// Helper: Status IRS dengan indikator halus (teks berwarna + titik, tanpa badge)
+function statusIRS($status) {
+    $warna = ['pending' => '#d68910', 'approved' => '#27ae60', 'rejected' => '#c0392b'][$status] ?? '#7f8c8d';
+    $label = ['pending' => 'Menunggu', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'][$status] ?? ucfirst($status);
+    return '<span style="display:inline-flex;align-items:center;gap:6px;color:' . $warna . ';font-weight:600;font-size:13px;">'
+        . '<span style="width:8px;height:8px;border-radius:50%;background:' . $warna . ';display:inline-block;"></span>'
+        . $label . '</span>';
+}
+
+// Helper: status verifikasi singkat
+function statusVerifikasi($status) {
+    $verified = ($status === 'verified');
+    return '<span style="display:inline-flex;align-items:center;gap:6px;color:' . ($verified ? '#27ae60' : '#95a5a6') . ';font-weight:600;font-size:13px;">'
+        . '<i class="fas ' . ($verified ? 'fa-check-circle' : 'fa-circle-notch') . '"></i>'
+        . ($verified ? 'Terverifikasi' : 'Draft') . '</span>';
+}
 
 include __DIR__ . '/../../includes/header.php';
 ?>
@@ -176,12 +192,41 @@ include __DIR__ . '/../../includes/header.php';
     border-bottom-color: #3498db;
 }
 
-.tab-content {
-    display: none;
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 20px;
 }
 
-.tab-content.active {
-    display: block;
+.filter-bar .form-group {
+    margin: 0;
+}
+
+.filter-bar select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    width: 100%;
+    background: #fff;
+    font-size: 14px;
+}
+
+.section-title {
+    margin: 18px 0 10px;
+    font-size: 15px;
+    color: var(--secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-title i {
+    color: var(--primary);
 }
 </style>
 
@@ -213,31 +258,34 @@ include __DIR__ . '/../../includes/header.php';
 <div class="table-container">
     <div class="tabs-container">
         <a href="?tab=nilai" class="tab-btn <?= $tab === 'nilai' ? 'active' : '' ?>">
-            <i class="fas fa-clipboard-list"></i> Laporan Nilai
+            <i class="fas fa-clipboard-list"></i> Nilai
+        </a>
+        <a href="?tab=rekap_nilai" class="tab-btn <?= $tab === 'rekap_nilai' ? 'active' : '' ?>">
+            <i class="fas fa-chart-line"></i> Nilai Mhs
         </a>
         <a href="?tab=irs" class="tab-btn <?= $tab === 'irs' ? 'active' : '' ?>">
-            <i class="fas fa-file-signature"></i> Laporan IRS
+            <i class="fas fa-file-signature"></i> IRS
         </a>
         <a href="?tab=presensi" class="tab-btn <?= $tab === 'presensi' ? 'active' : '' ?>">
-            <i class="fas fa-clipboard-check"></i> Laporan Presensi
+            <i class="fas fa-clipboard-check"></i> Presensi
         </a>
         <a href="?tab=mahasiswa" class="tab-btn <?= $tab === 'mahasiswa' ? 'active' : '' ?>">
-            <i class="fas fa-users"></i> Laporan Mahasiswa
+            <i class="fas fa-users"></i> Mahasiswa
         </a>
     </div>
-    
+
     <!-- ============================================ -->
     <!-- TAB 1: LAPORAN NILAI -->
     <!-- ============================================ -->
     <?php if ($tab === 'nilai'): ?>
-        
+
         <!-- Filter -->
-        <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px;">
+        <form method="GET" class="filter-bar">
             <input type="hidden" name="tab" value="nilai">
-            
-            <div class="form-group" style="margin: 0; min-width: 220px;">
+
+            <div class="form-group" style="min-width: 220px; flex: 1;">
                 <label style="font-size: 13px;">Mata Kuliah</label>
-                <select name="course_id" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                <select name="course_id">
                     <option value="">-- Semua Mata Kuliah --</option>
                     <?php foreach ($matakuliah as $mk): ?>
                         <option value="<?= $mk['id'] ?>" <?= $course_id == $mk['id'] ? 'selected' : '' ?>>
@@ -246,10 +294,10 @@ include __DIR__ . '/../../includes/header.php';
                     <?php endforeach; ?>
                 </select>
             </div>
-            
-            <div class="form-group" style="margin: 0; min-width: 130px;">
+
+            <div class="form-group" style="min-width: 130px;">
                 <label style="font-size: 13px;">Semester</label>
-                <select name="semester" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                <select name="semester">
                     <option value="">-- Semua --</option>
                     <?php foreach ($semesters as $s): ?>
                         <option value="<?= $s['semester'] ?>" <?= $semester == $s['semester'] ? 'selected' : '' ?>>
@@ -258,25 +306,21 @@ include __DIR__ . '/../../includes/header.php';
                     <?php endforeach; ?>
                 </select>
             </div>
-            
-            <div>
+
+            <div style="display: flex; gap: 8px;">
                 <button type="submit" class="btn btn-primary btn-sm">
                     <i class="fas fa-search"></i> Filter
                 </button>
-                <a href="?tab=nilai&export=nilai&course_id=<?= $course_id ?>&semester=<?= $semester ?>" 
-                   class="btn btn-success btn-sm">
-                    <i class="fas fa-file-excel"></i> Export Excel
-                </a>
-                <a href="/simak_app/public/admin/cetak_pdf.php?type=nilai&course_id=<?= $course_id ?>&semester=<?= $semester ?>" target="_blank"
-                    class="btn btn-danger btn-sm">
+                <a href="/simak_app/public/admin/cetak_pdf.php?type=nilai&course_id=<?= urlencode($course_id ?? '') ?>&semester=<?= urlencode($semester ?? '') ?>" target="_blank"
+                    class="btn btn-outline btn-sm">
                     <i class="fas fa-file-pdf"></i> PDF
                 </a>
             </div>
         </form>
-        
+
         <!-- Statistik Nilai -->
         <?php if (!empty($statistik)): ?>
-            <h4 style="margin: 15px 0 10px;"><i class="fas fa-chart-bar"></i> Statistik per Mata Kuliah</h4>
+            <h4 class="section-title"><i class="fas fa-chart-bar"></i> Statistik per Mata Kuliah</h4>
             <div style="overflow-x: auto; margin-bottom: 20px;">
                 <table>
                     <thead>
@@ -301,8 +345,8 @@ include __DIR__ . '/../../includes/header.php';
                                 <td><?= htmlspecialchars($s['nama_mk']) ?></td>
                                 <td><?= $s['total_mahasiswa'] ?></td>
                                 <td><strong><?= number_format($s['rata_rata'], 2) ?></strong></td>
-                                <td style="color: #2ecc71;"><?= number_format($s['nilai_max'], 1) ?></td>
-                                <td style="color: #e74c3c;"><?= number_format($s['nilai_min'], 1) ?></td>
+                                <td><?= number_format($s['nilai_max'], 1) ?></td>
+                                <td><?= number_format($s['nilai_min'], 1) ?></td>
                                 <td><?= $s['jumlah_a'] ?></td>
                                 <td><?= $s['jumlah_b'] ?></td>
                                 <td><?= $s['jumlah_c'] ?></td>
@@ -314,11 +358,15 @@ include __DIR__ . '/../../includes/header.php';
                 </table>
             </div>
         <?php endif; ?>
-        
+
         <!-- Detail Nilai -->
-        <h4 style="margin: 15px 0 10px;"><i class="fas fa-list"></i> Detail Nilai (<?= count($data) ?> data)</h4>
+        <h4 class="section-title"><i class="fas fa-list"></i> Detail Nilai <span class="text-muted" style="font-weight: 400;">(<?= count($data) ?> data)</span></h4>
         <?php if (empty($data)): ?>
-            <p style="text-align: center; color: #7f8c8d; padding: 30px;">Tidak ada data nilai</p>
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>Tidak ada data nilai</h3>
+                <p>Coba ubah filter atau pastikan dosen sudah menginput nilai.</p>
+            </div>
         <?php else: ?>
             <div style="overflow-x: auto;">
                 <table>
@@ -326,7 +374,6 @@ include __DIR__ . '/../../includes/header.php';
                         <tr>
                             <th>NIM</th>
                             <th>Mahasiswa</th>
-                            <th>Prodi</th>
                             <th>Kode MK</th>
                             <th>Mata Kuliah</th>
                             <th>SKS</th>
@@ -340,50 +387,226 @@ include __DIR__ . '/../../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($data as $row): 
+                        <?php foreach ($data as $row):
                             list($huruf, $warna) = nilaiHuruf($row['nilai_akhir']);
                         ?>
                             <tr>
                                 <td><strong><?= htmlspecialchars($row['nim']) ?></strong></td>
                                 <td><?= htmlspecialchars($row['mahasiswa_nama']) ?></td>
-                                <td><small><?= htmlspecialchars($row['program_studi']) ?></small></td>
-                                <td><?= htmlspecialchars($row['kode_mk']) ?></td>
+                                <td><strong><?= htmlspecialchars($row['kode_mk']) ?></strong></td>
                                 <td><?= htmlspecialchars($row['nama_mk']) ?></td>
                                 <td><?= $row['sks'] ?></td>
-                                <td><?= $row['semester'] ?></td>
-                                <td><?= number_format($row['nilai_tugas'], 1) ?></td>
-                                <td><?= number_format($row['nilai_uts'], 1) ?></td>
-                                <td><?= number_format($row['nilai_uas'], 1) ?></td>
-                                <td><strong><?= number_format($row['nilai_akhir'], 1) ?></strong></td>
-                                <td>
-                                    <span style="background: <?= $warna ?>; color: #fff; padding: 3px 10px; border-radius: 15px; font-size: 11px; font-weight: bold;">
-                                        <?= $huruf ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <span style="background: <?= $row['status_verifikasi'] === 'verified' ? '#2ecc71' : '#f39c12' ?>; color: #fff; padding: 2px 8px; border-radius: 15px; font-size: 10px;">
-                                        <?= ucfirst($row['status_verifikasi']) ?>
-                                    </span>
-                                </td>
+                                <td><?= htmlspecialchars($row['semester'] ?? '-') ?></td>
+                                <td><?= fmtNilai($row['nilai_tugas']) ?></td>
+                                <td><?= fmtNilai($row['nilai_uts']) ?></td>
+                                <td><?= fmtNilai($row['nilai_uas']) ?></td>
+                                <td><strong><?= fmtNilai($row['nilai_akhir']) ?></strong></td>
+                                <td><strong style="color: <?= $warna ?>;"><?= $huruf ?></strong></td>
+                                <td><?= statusVerifikasi($row['status_verifikasi']) ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
         <?php endif; ?>
-        
+
+    <!-- ============================================ -->
+    <!-- TAB 1B: REKAP NILAI MAHASISWA (PER SEMESTER) -->
+    <!-- ============================================ -->
+    <?php elseif ($tab === 'rekap_nilai'): ?>
+
+        <!-- Filter -->
+        <form method="GET" class="filter-bar">
+            <input type="hidden" name="tab" value="rekap_nilai">
+
+            <div class="form-group" style="min-width: 260px; flex: 1;">
+                <label style="font-size: 13px;">Mahasiswa</label>
+                <select name="mahasiswa_id">
+                    <option value="">-- Pilih Mahasiswa --</option>
+                    <?php foreach ($mahasiswa_list as $m): ?>
+                        <option value="<?= $m['id'] ?>" <?= $mahasiswa_id == $m['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($m['nim']) ?> - <?= htmlspecialchars($m['mahasiswa_nama']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="form-group" style="min-width: 130px;">
+                <label style="font-size: 13px;">Semester</label>
+                <select name="semester">
+                    <option value="">-- Semua Semester (IPK) --</option>
+                    <?php foreach ($semester_options as $s): ?>
+                        <option value="<?= $s['semester'] ?>" <?= $semester == $s['semester'] ? 'selected' : '' ?>>
+                            Smt <?= $s['semester'] ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fas fa-search"></i> Tampilkan
+                </button>
+                <?php if ($mahasiswa_id && !empty($data)): ?>
+                    <a href="/simak_app/public/admin/cetak_pdf.php?type=rekap_nilai&mahasiswa_id=<?= urlencode($mahasiswa_id) ?>&semester=<?= urlencode($semester ?? '') ?>" target="_blank"
+                        class="btn btn-outline btn-sm">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </a>
+                <?php endif; ?>
+            </div>
+        </form>
+
+        <?php if (!$mahasiswa_id): ?>
+            <div class="empty-state">
+                <i class="fas fa-user-graduate"></i>
+                <h3>Pilih Mahasiswa</h3>
+                <p>Pilih mahasiswa di atas untuk melihat report nilai per semester dan IPK semua semester.</p>
+            </div>
+        <?php elseif (empty($data)): ?>
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>Belum ada nilai terverifikasi</h3>
+                <p>Mahasiswa ini belum memiliki nilai yang terverifikasi.</p>
+            </div>
+        <?php else: ?>
+
+            <!-- Ringkasan IPK / IPS -->
+            <h4 class="section-title"><i class="fas fa-chart-line"></i> Ringkasan</h4>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+                    <div class="stat-number" style="font-size: 22px;">
+                        <?= htmlspecialchars($mhs_info['mahasiswa_nama'] ?? '-') ?>
+                    </div>
+                    <div class="stat-label">
+                        NIM <?= htmlspecialchars($mhs_info['nim'] ?? '-') ?> · <?= htmlspecialchars($mhs_info['program_studi'] ?? '-') ?>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-star"></i></div>
+                    <div class="stat-number" style="color: <?= $ipk_mahasiswa >= 3.0 ? '#27ae60' : ($ipk_mahasiswa >= 2.5 ? '#d68910' : '#c0392b') ?>;">
+                        <?= number_format($ipk_mahasiswa, 2) ?>
+                    </div>
+                    <div class="stat-label">
+                        <?= $semester ? 'IPS Semester ' . htmlspecialchars($semester) : 'IPK Semua Semester' ?>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-book"></i></div>
+                    <div class="stat-number"><?= count($data) ?></div>
+                    <div class="stat-label">Mata Kuliah dengan Nilai</div>
+                </div>
+            </div>
+
+            <!-- IPS per semester -->
+            <?php if (!$semester): ?>
+                <h4 class="section-title"><i class="fas fa-chart-bar"></i> IPS per Semester</h4>
+                <div style="overflow-x: auto; margin-bottom: 20px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Semester</th>
+                                <th>Jumlah MK</th>
+                                <th>Total SKS</th>
+                                <th>IPS</th>
+                                <th>Predikat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($ips_data as $sem => $info):
+                                $w_ips = $info['ips'] >= 3.0 ? '#27ae60' : ($info['ips'] >= 2.5 ? '#d68910' : '#c0392b');
+                                $pred = $info['ips'] >= 3.5 ? 'Sangat Baik' : ($info['ips'] >= 3.0 ? 'Baik' : ($info['ips'] >= 2.5 ? 'Cukup' : 'Kurang'));
+                            ?>
+                                <tr>
+                                    <td><strong>Semester <?= $sem ?></strong></td>
+                                    <td><?= $info['jumlah_mk'] ?></td>
+                                    <td><?= $info['total_sks'] ?></td>
+                                    <td><strong style="color: <?= $w_ips ?>; font-size: 15px;">
+                                        <?= number_format($info['ips'], 2) ?>
+                                    </strong></td>
+                                    <td class="text-muted"><?= $pred ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                            <tr style="background: #f8f9fa;">
+                                <td colspan="2" style="text-align: right;"><strong>IPK Keseluruhan:</strong></td>
+                                <td><strong><?= array_sum(array_column($ips_data, 'total_sks')) ?></strong></td>
+                                <td><strong style="color: <?= $ipk_mahasiswa >= 3.0 ? '#27ae60' : ($ipk_mahasiswa >= 2.5 ? '#d68910' : '#c0392b') ?>; font-size: 15px;">
+                                    <?= number_format($ipk_mahasiswa, 2) ?>
+                                </strong></td>
+                                <td class="text-muted">Semua Semester</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+
+            <!-- Detail nilai -->
+            <h4 class="section-title"><i class="fas fa-list"></i> Detail Nilai <span class="text-muted" style="font-weight: 400;">(<?= $semester ? 'Semester ' . htmlspecialchars($semester) : 'Semua Semester' ?>)</span></h4>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Smt</th>
+                            <th>Kode MK</th>
+                            <th>Mata Kuliah</th>
+                            <th>SKS</th>
+                            <th>Tugas</th>
+                            <th>UTS</th>
+                            <th>UAS</th>
+                            <th>Akhir</th>
+                            <th>Huruf</th>
+                            <th>Bobot</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($data as $row):
+                            $tp = intval($row['total_pertemuan']);
+                            $kh = ($tp > 0) ? ((intval($row['p_hadir']) + intval($row['p_izin']) + intval($row['p_sakit'])) / $tp) * 100 : null;
+                            $nf = LaporanController::hitungNilaiFinal(floatval($row['nilai_akhir']), $kh);
+                            $bobot = LaporanController::nilaiKeBobot($nf);
+                            list($huruf, $warna) = nilaiHuruf($nf);
+                        ?>
+                            <tr>
+                                <td><?= htmlspecialchars($row['semester']) ?></td>
+                                <td><strong><?= htmlspecialchars($row['kode_mk']) ?></strong></td>
+                                <td><?= htmlspecialchars($row['nama_mk']) ?></td>
+                                <td><?= $row['sks'] ?></td>
+                                <td><?= fmtNilai($row['nilai_tugas']) ?></td>
+                                <td><?= fmtNilai($row['nilai_uts']) ?></td>
+                                <td><?= fmtNilai($row['nilai_uas']) ?></td>
+                                <td><strong><?= fmtNilai($nf) ?></strong></td>
+                                <td><strong style="color: <?= $warna ?>;"><?= $huruf ?></strong></td>
+                                <td><?= number_format($bobot, 1) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <tr style="background: #f8f9fa; font-weight: bold;">
+                            <td colspan="3" style="text-align: right;">Total</td>
+                            <td>
+                                <?php
+                                $t_sks = 0;
+                                foreach ($data as $row) $t_sks += intval($row['sks']);
+                                echo $t_sks;
+                                ?>
+                            </td>
+                            <td colspan="7"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+
     <!-- ============================================ -->
     <!-- TAB 2: LAPORAN IRS -->
     <!-- ============================================ -->
     <?php elseif ($tab === 'irs'): ?>
-        
+
         <!-- Filter -->
-        <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px;">
+        <form method="GET" class="filter-bar">
             <input type="hidden" name="tab" value="irs">
-            
-            <div class="form-group" style="margin: 0; min-width: 130px;">
+
+            <div class="form-group" style="min-width: 130px;">
                 <label style="font-size: 13px;">Semester</label>
-                <select name="semester" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                <select name="semester">
                     <option value="">-- Semua --</option>
                     <?php foreach ($semesters as $s): ?>
                         <option value="<?= $s['semester'] ?>" <?= $semester == $s['semester'] ? 'selected' : '' ?>>
@@ -392,60 +615,43 @@ include __DIR__ . '/../../includes/header.php';
                     <?php endforeach; ?>
                 </select>
             </div>
-            
-            <div class="form-group" style="margin: 0; min-width: 130px;">
+
+            <div class="form-group" style="min-width: 150px;">
                 <label style="font-size: 13px;">Status</label>
-                <select name="status" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                <select name="status">
                     <option value="">-- Semua --</option>
-                    <option value="pending" <?= $status === 'pending' ? 'selected' : '' ?>>Pending</option>
-                    <option value="approved" <?= $status === 'approved' ? 'selected' : '' ?>>Approved</option>
-                    <option value="rejected" <?= $status === 'rejected' ? 'selected' : '' ?>>Rejected</option>
+                    <option value="pending" <?= $status === 'pending' ? 'selected' : '' ?>>Menunggu</option>
+                    <option value="approved" <?= $status === 'approved' ? 'selected' : '' ?>>Disetujui</option>
+                    <option value="rejected" <?= $status === 'rejected' ? 'selected' : '' ?>>Ditolak</option>
                 </select>
             </div>
-            
-            <div>
+
+            <div style="display: flex; gap: 8px;">
                 <button type="submit" class="btn btn-primary btn-sm">
                     <i class="fas fa-search"></i> Filter
                 </button>
-                <a href="?tab=irs&export=irs&semester=<?= $semester ?>&status=<?= $status ?>" 
-                   class="btn btn-success btn-sm">
-                    <i class="fas fa-file-excel"></i> Export Excel
-                </a>
-                <a href="/simak_app/public/admin/cetak_pdf.php?type=irs&semester=<?= $semester ?>&status=<?= $status ?>" target="_blank"
-                    class="btn btn-danger btn-sm">
+                <a href="/simak_app/public/admin/cetak_pdf.php?type=irs&semester=<?= urlencode($semester ?? '') ?>&status=<?= urlencode($status ?? '') ?>" target="_blank"
+                    class="btn btn-outline btn-sm">
                     <i class="fas fa-file-pdf"></i> PDF
                 </a>
             </div>
         </form>
-        
-        <!-- Statistik IRS -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
-            <?php foreach ($statistik as $s): ?>
-                <div style="background: #fff; padding: 20px; border-radius: 8px; border-left: 4px solid <?= $status_color[$s['status']] ?? '#7f8c8d' ?>; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                    <div style="font-size: 28px; font-weight: bold; color: <?= $status_color[$s['status']] ?? '#7f8c8d' ?>;">
-                        <?= $s['total'] ?>
-                    </div>
-                    <div style="color: #7f8c8d; font-size: 13px;">IRS <?= ucfirst($s['status']) ?></div>
-                </div>
-            <?php endforeach; ?>
-        </div>
-        
+
         <!-- Rekap IRS per Mahasiswa -->
         <?php if (!empty($rekap_irs)): ?>
-            <h4 style="margin: 15px 0 10px;"><i class="fas fa-users"></i> Rekap IRS per Mahasiswa</h4>
+            <h4 class="section-title"><i class="fas fa-users"></i> Rekap IRS per Mahasiswa</h4>
             <div style="overflow-x: auto; margin-bottom: 20px;">
                 <table>
                     <thead>
                         <tr>
                             <th>NIM</th>
                             <th>Mahasiswa</th>
-                            <th>Prodi</th>
                             <th>Smt</th>
                             <th>Jumlah MK</th>
                             <th>Total SKS</th>
-                            <th>Approved</th>
-                            <th>Pending</th>
-                            <th>Rejected</th>
+                            <th>Disetujui</th>
+                            <th>Menunggu</th>
+                            <th>Ditolak</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -453,24 +659,27 @@ include __DIR__ . '/../../includes/header.php';
                             <tr>
                                 <td><strong><?= htmlspecialchars($r['nim']) ?></strong></td>
                                 <td><?= htmlspecialchars($r['mahasiswa_nama']) ?></td>
-                                <td><small><?= htmlspecialchars($r['program_studi']) ?></small></td>
                                 <td><?= $r['semester'] ?></td>
                                 <td><?= $r['jumlah_mk'] ?></td>
                                 <td><strong><?= $r['total_sks'] ?></strong></td>
-                                <td style="color: #2ecc71;"><?= $r['approved'] ?></td>
-                                <td style="color: #f39c12;"><?= $r['pending'] ?></td>
-                                <td style="color: #e74c3c;"><?= $r['rejected'] ?></td>
+                                <td class="text-success"><?= $r['approved'] ?></td>
+                                <td class="text-warning"><?= $r['pending'] ?></td>
+                                <td class="text-danger"><?= $r['rejected'] ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
         <?php endif; ?>
-        
+
         <!-- Detail IRS -->
-        <h4 style="margin: 15px 0 10px;"><i class="fas fa-list"></i> Detail IRS (<?= count($data) ?> data)</h4>
+        <h4 class="section-title"><i class="fas fa-list"></i> Detail IRS <span class="text-muted" style="font-weight: 400;">(<?= count($data) ?> data)</span></h4>
         <?php if (empty($data)): ?>
-            <p style="text-align: center; color: #7f8c8d; padding: 30px;">Tidak ada data IRS</p>
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>Tidak ada data IRS</h3>
+                <p>Coba ubah filter semester atau status.</p>
+            </div>
         <?php else: ?>
             <div style="overflow-x: auto;">
                 <table>
@@ -491,15 +700,11 @@ include __DIR__ . '/../../includes/header.php';
                             <tr>
                                 <td><strong><?= htmlspecialchars($row['nim']) ?></strong></td>
                                 <td><?= htmlspecialchars($row['mahasiswa_nama']) ?></td>
-                                <td><?= htmlspecialchars($row['kode_mk']) ?></td>
+                                <td><strong><?= htmlspecialchars($row['kode_mk']) ?></strong></td>
                                 <td><?= htmlspecialchars($row['nama_mk']) ?></td>
                                 <td><?= $row['sks'] ?></td>
                                 <td><?= $row['semester'] ?></td>
-                                <td>
-                                    <span style="background: <?= $status_color[$row['status']] ?>; color: #fff; padding: 3px 10px; border-radius: 15px; font-size: 11px;">
-                                        <?= ucfirst($row['status']) ?>
-                                    </span>
-                                </td>
+                                <td><?= statusIRS($row['status']) ?></td>
                                 <td><small><?= date('d-m-Y', strtotime($row['created_at'])) ?></small></td>
                             </tr>
                         <?php endforeach; ?>
@@ -507,19 +712,19 @@ include __DIR__ . '/../../includes/header.php';
                 </table>
             </div>
         <?php endif; ?>
-        
+
     <!-- ============================================ -->
     <!-- TAB 3: LAPORAN PRESENSI -->
     <!-- ============================================ -->
     <?php elseif ($tab === 'presensi'): ?>
-        
+
         <!-- Filter -->
-        <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px;">
+        <form method="GET" class="filter-bar">
             <input type="hidden" name="tab" value="presensi">
-            
-            <div class="form-group" style="margin: 0; min-width: 220px;">
+
+            <div class="form-group" style="min-width: 220px; flex: 1;">
                 <label style="font-size: 13px;">Mata Kuliah</label>
-                <select name="course_id" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                <select name="course_id">
                     <option value="">-- Semua Mata Kuliah --</option>
                     <?php foreach ($matakuliah as $mk): ?>
                         <option value="<?= $mk['id'] ?>" <?= $course_id == $mk['id'] ? 'selected' : '' ?>>
@@ -528,25 +733,21 @@ include __DIR__ . '/../../includes/header.php';
                     <?php endforeach; ?>
                 </select>
             </div>
-            
-            <div>
+
+            <div style="display: flex; gap: 8px;">
                 <button type="submit" class="btn btn-primary btn-sm">
                     <i class="fas fa-search"></i> Filter
                 </button>
-                <a href="?tab=presensi&export=presensi&course_id=<?= $course_id ?>" 
-                   class="btn btn-success btn-sm">
-                    <i class="fas fa-file-excel"></i> Export Excel
-                </a>
-                <a href="/simak_app/public/admin/cetak_pdf.php?type=presensi&course_id=<?= $course_id ?>" target="_blank"
-                    class="btn btn-danger btn-sm">
+                <a href="/simak_app/public/admin/cetak_pdf.php?type=presensi&course_id=<?= urlencode($course_id ?? '') ?>" target="_blank"
+                    class="btn btn-outline btn-sm">
                     <i class="fas fa-file-pdf"></i> PDF
                 </a>
             </div>
         </form>
-        
+
         <!-- Statistik Presensi -->
         <?php if (!empty($statistik)): ?>
-            <h4 style="margin: 15px 0 10px;"><i class="fas fa-chart-bar"></i> Statistik Presensi per Mata Kuliah</h4>
+            <h4 class="section-title"><i class="fas fa-chart-bar"></i> Statistik Presensi per Mata Kuliah</h4>
             <div style="overflow-x: auto; margin-bottom: 20px;">
                 <table>
                     <thead>
@@ -569,12 +770,12 @@ include __DIR__ . '/../../includes/header.php';
                                 <td><?= htmlspecialchars($s['nama_mk']) ?></td>
                                 <td><?= $s['total_mahasiswa'] ?></td>
                                 <td><?= $s['total_presensi'] ?></td>
-                                <td style="color: #2ecc71;"><?= $s['hadir'] ?></td>
-                                <td style="color: #f39c12;"><?= $s['izin'] ?></td>
-                                <td style="color: #3498db;"><?= $s['sakit'] ?></td>
-                                <td style="color: #e74c3c;"><?= $s['alpa'] ?></td>
+                                <td><?= $s['hadir'] ?></td>
+                                <td><?= $s['izin'] ?></td>
+                                <td><?= $s['sakit'] ?></td>
+                                <td><?= $s['alpa'] ?></td>
                                 <td>
-                                    <strong style="color: <?= $s['persentase'] >= 75 ? '#2ecc71' : ($s['persentase'] >= 50 ? '#f39c12' : '#e74c3c') ?>">
+                                    <strong style="color: <?= $s['persentase'] >= 75 ? '#27ae60' : ($s['persentase'] >= 50 ? '#d68910' : '#c0392b') ?>">
                                         <?= $s['persentase'] ?>%
                                     </strong>
                                 </td>
@@ -584,11 +785,15 @@ include __DIR__ . '/../../includes/header.php';
                 </table>
             </div>
         <?php endif; ?>
-        
+
         <!-- Detail Presensi -->
-        <h4 style="margin: 15px 0 10px;"><i class="fas fa-list"></i> Detail Presensi (<?= count($data) ?> data)</h4>
+        <h4 class="section-title"><i class="fas fa-list"></i> Detail Presensi <span class="text-muted" style="font-weight: 400;">(<?= count($data) ?> data)</span></h4>
         <?php if (empty($data)): ?>
-            <p style="text-align: center; color: #7f8c8d; padding: 30px;">Tidak ada data presensi</p>
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>Tidak ada data presensi</h3>
+                <p>Belum ada sesi presensi yang dijalankan dosen.</p>
+            </div>
         <?php else: ?>
             <div style="overflow-x: auto;">
                 <table>
@@ -611,15 +816,15 @@ include __DIR__ . '/../../includes/header.php';
                             <tr>
                                 <td><strong><?= htmlspecialchars($row['kode_mk']) ?></strong></td>
                                 <td><?= htmlspecialchars($row['nama_mk']) ?></td>
-                                <td><?= htmlspecialchars($row['nim']) ?></td>
+                                <td><strong><?= htmlspecialchars($row['nim']) ?></strong></td>
                                 <td><?= htmlspecialchars($row['mahasiswa_nama']) ?></td>
-                                <td style="color: #2ecc71;"><?= $row['hadir'] ?></td>
-                                <td style="color: #f39c12;"><?= $row['izin'] ?></td>
-                                <td style="color: #3498db;"><?= $row['sakit'] ?></td>
-                                <td style="color: #e74c3c;"><?= $row['alpa'] ?></td>
+                                <td><?= $row['hadir'] ?></td>
+                                <td><?= $row['izin'] ?></td>
+                                <td><?= $row['sakit'] ?></td>
+                                <td><?= $row['alpa'] ?></td>
                                 <td><strong><?= $row['total_pertemuan'] ?></strong></td>
                                 <td>
-                                    <strong style="color: <?= $row['persentase_hadir'] >= 75 ? '#2ecc71' : ($row['persentase_hadir'] >= 50 ? '#f39c12' : '#e74c3c') ?>">
+                                    <strong style="color: <?= $row['persentase_hadir'] >= 75 ? '#27ae60' : ($row['persentase_hadir'] >= 50 ? '#d68910' : '#c0392b') ?>">
                                         <?= $row['persentase_hadir'] ?>%
                                     </strong>
                                 </td>
@@ -629,19 +834,19 @@ include __DIR__ . '/../../includes/header.php';
                 </table>
             </div>
         <?php endif; ?>
-        
+
     <!-- ============================================ -->
     <!-- TAB 4: LAPORAN MAHASISWA -->
     <!-- ============================================ -->
     <?php elseif ($tab === 'mahasiswa'): ?>
-        
+
         <!-- Filter -->
-        <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px;">
+        <form method="GET" class="filter-bar">
             <input type="hidden" name="tab" value="mahasiswa">
-            
-            <div class="form-group" style="margin: 0; min-width: 220px;">
+
+            <div class="form-group" style="min-width: 220px; flex: 1;">
                 <label style="font-size: 13px;">Jurusan</label>
-                <select name="jurusan_id" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                <select name="jurusan_id">
                     <option value="">-- Semua Jurusan --</option>
                     <?php foreach ($prodi_list as $p): ?>
                         <option value="<?= $p['jurusan_id'] ?>" <?= $jurusan_id == $p['jurusan_id'] ? 'selected' : '' ?>>
@@ -650,26 +855,26 @@ include __DIR__ . '/../../includes/header.php';
                     <?php endforeach; ?>
                 </select>
             </div>
-            
-            <div>
+
+            <div style="display: flex; gap: 8px;">
                 <button type="submit" class="btn btn-primary btn-sm">
                     <i class="fas fa-search"></i> Filter
                 </button>
-                <a href="?tab=mahasiswa&export=mahasiswa&jurusan_id=<?= urlencode($jurusan_id ?? '') ?>" 
-                   class="btn btn-success btn-sm">
-                    <i class="fas fa-file-excel"></i> Export Excel
-                </a>
-                <a href="/simak_app/public/admin/cetak_pdf.php?type=mahasiswa&jurusan_id=<?= $jurusan_id ?>" target="_blank"
-                class="btn btn-danger btn-sm">
+                <a href="/simak_app/public/admin/cetak_pdf.php?type=mahasiswa&jurusan_id=<?= urlencode($jurusan_id ?? '') ?>" target="_blank"
+                class="btn btn-outline btn-sm">
                     <i class="fas fa-file-pdf"></i> PDF
                 </a>
             </div>
         </form>
-        
+
         <!-- Data Mahasiswa -->
-        <h4 style="margin: 15px 0 10px;"><i class="fas fa-list"></i> Data Mahasiswa & IPK (<?= count($data) ?> mahasiswa)</h4>
+        <h4 class="section-title"><i class="fas fa-list"></i> Data Mahasiswa & IPK <span class="text-muted" style="font-weight: 400;">(<?= count($data) ?> mahasiswa)</span></h4>
         <?php if (empty($data)): ?>
-            <p style="text-align: center; color: #7f8c8d; padding: 30px;">Tidak ada data mahasiswa</p>
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>Tidak ada data mahasiswa</h3>
+                <p>Coba ubah filter jurusan.</p>
+            </div>
         <?php else: ?>
             <div style="overflow-x: auto;">
                 <table>
@@ -683,35 +888,25 @@ include __DIR__ . '/../../includes/header.php';
                             <th>Smt</th>
                             <th>Total SKS</th>
                             <th>IPK</th>
-                            <th>Predikat</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($data as $row): 
-                            $ipk = $row['ipk'] ?? 0;
-                            if ($ipk >= 3.5) { $predikat = 'Cumlaude'; $warna = '#2ecc71'; }
-                            elseif ($ipk >= 3.0) { $predikat = 'Sangat Baik'; $warna = '#3498db'; }
-                            elseif ($ipk >= 2.5) { $predikat = 'Baik'; $warna = '#f39c12'; }
-                            elseif ($ipk >= 2.0) { $predikat = 'Cukup'; $warna = '#e67e22'; }
-                            else { $predikat = 'Perlu Perbaikan'; $warna = '#e74c3c'; }
+                        <?php foreach ($data as $row):
+                            $ipk = (float)($row['ipk'] ?? 0);
+                            $warna_ipk = $ipk >= 3.0 ? '#27ae60' : ($ipk >= 2.5 ? '#d68910' : ($ipk > 0 ? '#c0392b' : '#95a5a6'));
                         ?>
                             <tr>
                                 <td><strong><?= htmlspecialchars($row['nim']) ?></strong></td>
                                 <td><?= htmlspecialchars($row['mahasiswa_nama']) ?></td>
                                 <td><small><?= htmlspecialchars($row['email']) ?></small></td>
-                                <td><?= htmlspecialchars($row['program_studi']) ?></td>
+                                <td><?= htmlspecialchars($row['program_studi'] ?? '-') ?></td>
                                 <td><?= $row['angkatan'] ?></td>
                                 <td><?= $row['semester'] ?></td>
-                                <td><strong><?= $row['total_sks'] ?></strong></td>
+                                <td><?= $row['total_sks'] ?></td>
                                 <td>
-                                    <strong style="color: <?= $warna ?>; font-size: 15px;">
+                                    <strong style="color: <?= $warna_ipk ?>; font-size: 14px;">
                                         <?= number_format($ipk, 2) ?>
                                     </strong>
-                                </td>
-                                <td>
-                                    <span style="background: <?= $warna ?>; color: #fff; padding: 3px 10px; border-radius: 15px; font-size: 11px;">
-                                        <?= $predikat ?>
-                                    </span>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -719,7 +914,7 @@ include __DIR__ . '/../../includes/header.php';
                 </table>
             </div>
         <?php endif; ?>
-        
+
     <?php endif; ?>
 </div>
 

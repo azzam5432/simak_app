@@ -23,7 +23,24 @@ $matakuliah = $controller->getMatakuliahDosen();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'send') {
     $result = $controller->sendBroadcast($_POST);
     if ($result['success']) {
-        redirectWithMessage('/simak_app/public/dosen/broadcast.php', 'Pengumuman berhasil dikirim!', 'success');
+        $pesan_sukses = 'Pengumuman berhasil dikirim!';
+        
+        // Kirim juga via email jika dicentang
+        if (!empty($_POST['kirim_email']) && !empty($result['id'])) {
+            $email_result = $controller->kirimBroadcastViaEmail($result['id']);
+            
+            if ($email_result['success'] && $email_result['sent'] > 0) {
+                $pesan_sukses .= " Email terkirim ke {$email_result['sent']} mahasiswa.";
+            } elseif (!$email_result['success']) {
+                redirectWithMessage(
+                    '/simak_app/public/dosen/broadcast.php',
+                    'Pengumuman tersimpan, tapi email gagal: ' . ($email_result['message'] ?? 'unknown'),
+                    'warning'
+                );
+            }
+        }
+        
+        redirectWithMessage('/simak_app/public/dosen/broadcast.php', $pesan_sukses, 'success');
     } else {
         redirectWithMessage('/simak_app/public/dosen/broadcast.php', 'Gagal: ' . $result['message'], 'error');
     }
@@ -68,6 +85,14 @@ include __DIR__ . '/../../includes/header.php';
                 <div class="form-group">
                     <label>Pesan</label>
                     <textarea name="pesan" rows="5" required placeholder="Tulis pesan pengumuman..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                        <input type="checkbox" name="kirim_email" value="1" style="width: 16px; height: 16px;">
+                        <i class="fas fa-envelope"></i> Kirim juga via email ke penerima
+                        <small style="color: #7f8c8d;">(butuh waktu tergantung jumlah penerima)</small>
+                    </label>
                 </div>
                 
                 <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-paper-plane"></i> Kirim Pengumuman</button>

@@ -11,34 +11,60 @@ $adminController = new AdminController($pdo);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-    
+    $redirect = '/simak_app/public/admin/validasi_irs.php';
+
+    // Validasi CSRF token
+    if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+        redirectWithMessage($redirect, 'Sesi tidak valid, silakan coba lagi.', 'error');
+    }
+
     switch ($action) {
         case 'approve':
-            $result = $adminController->approveIRS($_POST['irs_id']);
+            $irs_id = intval($_POST['irs_id'] ?? 0);
+            if ($irs_id <= 0) {
+                redirectWithMessage($redirect, 'ID IRS tidak valid.', 'error');
+            }
+
+            $result = $adminController->approveIRS($irs_id);
             if ($result['success']) {
-                redirectWithMessage('/simak_app/public/admin/validasi_irs.php', 'IRS berhasil disetujui!', 'success');
+                redirectWithMessage($redirect, 'IRS berhasil disetujui!', 'success');
             } else {
-                redirectWithMessage('/simak_app/public/admin/validasi_irs.php', 'Gagal: ' . $result['message'], 'error');
+                redirectWithMessage($redirect, 'Gagal: ' . $result['message'], 'error');
             }
             break;
-            
+
         case 'reject':
-            $result = $adminController->rejectIRS($_POST['irs_id'], $_POST['catatan'] ?? null);
+            $irs_id = intval($_POST['irs_id'] ?? 0);
+            if ($irs_id <= 0) {
+                redirectWithMessage($redirect, 'ID IRS tidak valid.', 'error');
+            }
+
+            $catatan = trim($_POST['catatan'] ?? '');
+            $result = $adminController->rejectIRS($irs_id, $catatan !== '' ? $catatan : null);
             if ($result['success']) {
-                redirectWithMessage('/simak_app/public/admin/validasi_irs.php', 'IRS ditolak!', 'success');
+                redirectWithMessage($redirect, 'IRS ditolak.', 'success');
             } else {
-                redirectWithMessage('/simak_app/public/admin/validasi_irs.php', 'Gagal: ' . $result['message'], 'error');
+                redirectWithMessage($redirect, 'Gagal: ' . $result['message'], 'error');
             }
             break;
-            
+
         case 'approve_all':
-            $result = $adminController->approveAllIRS($_POST['mahasiswa_id'], $_POST['semester']);
+            $mahasiswa_id = intval($_POST['mahasiswa_id'] ?? 0);
+            $semester = trim($_POST['semester'] ?? '');
+            if ($mahasiswa_id <= 0 || $semester === '') {
+                redirectWithMessage($redirect, 'Data tidak valid.', 'error');
+            }
+
+            $result = $adminController->approveAllIRS($mahasiswa_id, $semester);
             if ($result['success']) {
-                redirectWithMessage('/simak_app/public/admin/validasi_irs.php', $result['affected'] . ' IRS berhasil disetujui!', 'success');
+                redirectWithMessage($redirect, $result['affected'] . ' IRS berhasil disetujui!', 'success');
             } else {
-                redirectWithMessage('/simak_app/public/admin/validasi_irs.php', 'Gagal: ' . $result['message'], 'error');
+                redirectWithMessage($redirect, 'Gagal: ' . $result['message'], 'error');
             }
             break;
+
+        default:
+            redirectWithMessage($redirect, 'Aksi tidak dikenali.', 'error');
     }
 }
 
@@ -54,108 +80,108 @@ foreach ($pending_irs as $irs) {
             'mahasiswa_nama' => $irs['mahasiswa_nama'],
             'nim' => $irs['nim'],
             'semester' => $irs['semester'],
+            'jurusan_nama' => $irs['jurusan_nama'] ?? null,
             'items' => []
         ];
     }
     $grouped_irs[$key]['items'][] = $irs;
 }
 
-$status_color = [
-    'pending' => '#f39c12',
-    'approved' => '#2ecc71',
-    'rejected' => '#e74c3c'
-];
+// CSRF token untuk semua form
+$csrf_token = generateCsrfToken();
 
 include __DIR__ . '/../../includes/header.php';
 ?>
 
-<div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+<div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-number" style="color: #f39c12;"><?= $stats['pending'] ?></div>
-        <div class="stat-label"><i class="fas fa-hourglass-half"></i> Pending</div>
+        <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
+        <div class="stat-number color-warning"><?= $stats['pending'] ?></div>
+        <div class="stat-label">Menunggu Validasi</div>
     </div>
     <div class="stat-card">
-        <div class="stat-number" style="color: #2ecc71;"><?= $stats['approved'] ?></div>
-        <div class="stat-label"><i class="fas fa-check"></i> Approved</div>
+        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-number color-success"><?= $stats['approved'] ?></div>
+        <div class="stat-label">Disetujui</div>
     </div>
     <div class="stat-card">
-        <div class="stat-number" style="color: #e74c3c;"><?= $stats['rejected'] ?></div>
-        <div class="stat-label"><i class="fas fa-times"></i> Rejected</div>
+        <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+        <div class="stat-number color-danger"><?= $stats['rejected'] ?></div>
+        <div class="stat-label">Ditolak</div>
     </div>
 </div>
 
 <div class="table-container">
     <div class="table-header">
-        <h3><i class="fas fa-hourglass-half"></i> IRS Menunggu Validasi</h3>
-        <div>
-            <input type="text" id="tableSearch" placeholder="Cari mahasiswa..." style="padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px;">
-        </div>
+        <h3><i class="fas fa-file-signature"></i> Pengajuan IRS</h3>
+        <?php if (!empty($grouped_irs)): ?>
+            <input type="text" id="irsSearch" placeholder="Cari nama atau NIM..." style="max-width: 260px;">
+        <?php endif; ?>
     </div>
-    
+
     <?php if (empty($grouped_irs)): ?>
-        <div style="text-align: center; padding: 40px; color: #7f8c8d;">
-            <h3><i class="fas fa-check"></i> Semua IRS telah divalidasi</h3>
-            <p>Tidak ada IRS yang menunggu persetujuan.</p>
+        <div class="empty-state">
+            <i class="fas fa-clipboard-check"></i>
+            <h3>Semua IRS telah divalidasi</h3>
+            <p>Tidak ada pengajuan IRS yang menunggu persetujuan.</p>
         </div>
     <?php else: ?>
         <?php foreach ($grouped_irs as $group): ?>
-            <div style="margin-bottom: 30px; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; background: #fafafa;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <?php $total_sks_group = array_sum(array_column($group['items'], 'sks')); ?>
+            <div class="irs-group" data-name="<?= htmlspecialchars(strtolower($group['mahasiswa_nama'] . ' ' . $group['nim'])) ?>">
+                <div class="irs-group-header">
                     <div>
-                        <h4 style="margin: 0;">
-                            <i class="fas fa-user"></i> <?= htmlspecialchars($group['mahasiswa_nama']) ?>
-                            <span style="font-weight: normal; font-size: 14px; color: #7f8c8d; margin-left: 10px;">
-                                (<?= htmlspecialchars($group['nim']) ?>)
-                            </span>
+                        <h4 class="irs-group-title">
+                            <?= htmlspecialchars($group['mahasiswa_nama']) ?>
+                            <span class="irs-group-nim"><?= htmlspecialchars($group['nim']) ?></span>
                         </h4>
-                        <small style="color: #7f8c8d;">Semester <?= $group['semester'] ?></small>
+                        <small class="irs-group-meta">
+                            Semester <?= htmlspecialchars($group['semester']) ?>
+                            <?= $group['jurusan_nama'] ? ' · ' . htmlspecialchars($group['jurusan_nama']) : '' ?>
+                            · <?= count($group['items']) ?> mata kuliah
+                            · Total <strong><?= $total_sks_group ?> SKS</strong>
+                        </small>
                     </div>
-                    <div>
-                        <form method="POST" style="display: inline-block;" onsubmit="return confirm('Setujui semua IRS untuk <?= htmlspecialchars($group['mahasiswa_nama']) ?>?')">
-                            <input type="hidden" name="action" value="approve_all">
-                            <input type="hidden" name="mahasiswa_id" value="<?= $group['mahasiswa_id'] ?>">
-                            <input type="hidden" name="semester" value="<?= $group['semester'] ?>">
-                            <button type="submit" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Setujui Semua</button>
-                        </form>
-                    </div>
+                    <form method="POST" onsubmit="return confirm('Setujui semua IRS <?= htmlspecialchars($group['mahasiswa_nama'], ENT_QUOTES) ?> (Semester <?= htmlspecialchars($group['semester'], ENT_QUOTES) ?>)?');">
+                        <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
+                        <input type="hidden" name="action" value="approve_all">
+                        <input type="hidden" name="mahasiswa_id" value="<?= $group['mahasiswa_id'] ?>">
+                        <input type="hidden" name="semester" value="<?= htmlspecialchars($group['semester']) ?>">
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="fas fa-check-double"></i> Setujui Semua
+                        </button>
+                    </form>
                 </div>
-                
+
                 <table>
                     <thead>
                         <tr>
                             <th>Kode</th>
                             <th>Mata Kuliah</th>
                             <th>SKS</th>
-                            <th>Ruang</th>
-                            <th>Aksi</th>
+                            <th class="th-actions">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php 
-                        $total_sks_group = 0;
-                        foreach ($group['items'] as $irs):
-                            $total_sks_group += $irs['sks'];
-                        ?>
+                        <?php foreach ($group['items'] as $irs): ?>
                             <tr>
                                 <td><strong><?= htmlspecialchars($irs['kode_mk']) ?></strong></td>
                                 <td><?= htmlspecialchars($irs['nama_mk']) ?></td>
                                 <td><?= $irs['sks'] ?></td>
-                                <td><?= htmlspecialchars($irs['ruang'] ?? '-') ?></td>
-                                <td>
-                                    <form method="POST" style="display: inline-block;">
+                                <td class="td-actions">
+                                    <form method="POST" style="display: inline;">
+                                        <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                                         <input type="hidden" name="action" value="approve">
                                         <input type="hidden" name="irs_id" value="<?= $irs['id'] ?>">
                                         <button type="submit" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Setuju</button>
                                     </form>
-                                    <button class="btn btn-danger btn-sm" onclick="showRejectForm(<?= $irs['id'] ?>, '<?= htmlspecialchars($irs['kode_mk']) ?>')"><i class="fas fa-times"></i> Tolak</button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm"
+                                            onclick="showRejectForm(<?= $irs['id'] ?>, '<?= htmlspecialchars($irs['kode_mk'], ENT_QUOTES) ?>')">
+                                        <i class="fas fa-times"></i> Tolak
+                                    </button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
-                        <tr style="background: #f8f9fa; font-weight: bold;">
-                            <td colspan="2" style="text-align: right;">Total SKS</td>
-                            <td><?= $total_sks_group ?></td>
-                            <td colspan="2"></td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -163,21 +189,29 @@ include __DIR__ . '/../../includes/header.php';
     <?php endif; ?>
 </div>
 
-<div id="modalReject" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999;">
-    <div class="modal-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; border-radius: 12px; max-width: 450px; width: 90%;">
-        <h3 style="margin-bottom: 10px;"><i class="fas fa-times"></i> Tolak IRS</h3>
-        <p style="color: #7f8c8d; margin-bottom: 15px;" id="rejectInfo">Menolak mata kuliah: </p>
+<!-- Modal Tolak IRS -->
+<div id="modalReject" class="modal">
+    <div class="modal-overlay" onclick="closeRejectModal()"></div>
+    <div class="modal-content" style="max-width: 460px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-times-circle" style="color: var(--danger);"></i> Tolak IRS</h3>
+            <button type="button" class="modal-close" onclick="closeRejectModal()">&times;</button>
+        </div>
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
             <input type="hidden" name="action" value="reject">
             <input type="hidden" name="irs_id" id="rejectIrsId">
             <div class="form-group">
-                <label>Catatan (opsional)</label>
-                <textarea name="catatan" placeholder="Alasan penolakan..." rows="3"></textarea>
+                <label>Mata Kuliah</label>
+                <input type="text" id="rejectInfo" value="" disabled>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button type="submit" class="btn btn-danger">Tolak</button>
-                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalReject').style.display='none'">Batal</button>
+            <div class="form-group">
+                <label>Catatan <span class="text-muted" style="font-weight: 400;">(opsional, diteruskan ke mahasiswa)</span></label>
+                <textarea name="catatan" id="rejectCatatan" placeholder="Contoh: Bentrok dengan jadwal kelas lain" rows="3"></textarea>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeRejectModal()">Batal</button>
+                <button type="submit" class="btn btn-danger"><i class="fas fa-times"></i> Tolak IRS</button>
             </div>
         </form>
     </div>
@@ -186,8 +220,31 @@ include __DIR__ . '/../../includes/header.php';
 <script>
 function showRejectForm(irsId, kodeMk) {
     document.getElementById('rejectIrsId').value = irsId;
-    document.getElementById('rejectInfo').textContent = 'Menolak mata kuliah: ' + kodeMk;
-    document.getElementById('modalReject').style.display = 'block';
+    document.getElementById('rejectInfo').value = kodeMk;
+    document.getElementById('rejectCatatan').value = '';
+    document.getElementById('modalReject').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeRejectModal() {
+    document.getElementById('modalReject').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeRejectModal();
+});
+
+// Filter kartu IRS berdasarkan nama/NIM
+const irsSearch = document.getElementById('irsSearch');
+if (irsSearch) {
+    irsSearch.addEventListener('input', function() {
+        const q = this.value.toLowerCase().trim();
+        document.querySelectorAll('.irs-group').forEach(function(card) {
+            const match = !q || card.dataset.name.includes(q);
+            card.style.display = match ? '' : 'none';
+        });
+    });
 }
 </script>
 
