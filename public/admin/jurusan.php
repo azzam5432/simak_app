@@ -54,11 +54,27 @@ $fakultas_list = $masterController->getFakultasList();
 include __DIR__ . '/../../includes/header.php';
 ?>
 
+<style>
+/* Select fakultas jangan melar penuh: tombol Tambah tetap sebaris dengan filter */
+.table-header .table-actions .form-select {
+    width: 280px;
+    max-width: 100%;
+    flex: 0 1 280px;
+}
+
+@media (max-width: 480px) {
+    .table-header .table-actions .form-select {
+        width: 200px;
+        flex-basis: 200px;
+    }
+}
+</style>
+
 <div class="table-container">
     <div class="table-header">
         <h3><i class="fas fa-book"></i> Master Jurusan</h3>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <select onchange="window.location.href='?fakultas_id='+this.value" style="padding: 8px 14px; border: 1.5px solid #e8ecf0; border-radius: 8px; background: #fff;">
+        <div class="table-actions">
+            <select class="form-select" onchange="window.location.href='?fakultas_id='+this.value">
                 <option value="">-- Semua Fakultas --</option>
                 <?php foreach ($fakultas_list as $f): ?>
                     <option value="<?= $f['id'] ?>" <?= $filter_fakultas == $f['id'] ? 'selected' : '' ?>>
@@ -66,13 +82,13 @@ include __DIR__ . '/../../includes/header.php';
                     </option>
                 <?php endforeach; ?>
             </select>
-            <button class="btn btn-primary" onclick="openModal('modalTambah')">
+            <button class="btn btn-success" onclick="openModal('modalTambah')">
                 <i class="fas fa-plus"></i> Tambah
             </button>
         </div>
     </div>
 
-    <table>
+    <table class="table table-striped table-hover align-middle">
         <thead>
             <tr>
                 <th>Kode</th>
@@ -101,7 +117,7 @@ include __DIR__ . '/../../includes/header.php';
                         <span class="row-actions">
                             <button class="btn btn-sm btn-icon btn-icon-light" title="Edit"
                                     onclick='editJurusan(<?= json_encode($j, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'>
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-edit"></i> Edit
                             </button>
                             <button class="btn btn-sm btn-icon btn-icon-danger-light" title="Hapus"
                                     onclick="deleteJurusan(<?= $j['id'] ?>, '<?= htmlspecialchars($j['nama'], ENT_QUOTES) ?>')">
@@ -140,8 +156,8 @@ include __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="action" value="create">
 
             <div class="form-group">
-                <label>Fakultas <span class="required">*</span></label>
-                <select name="fakultas_id" required>
+                <label class="form-label">Fakultas <span class="required">*</span></label>
+                <select class="form-select" name="fakultas_id" required>
                     <option value="">-- Pilih Fakultas --</option>
                     <?php foreach ($fakultas_list as $f): ?>
                         <option value="<?= $f['id'] ?>"><?= htmlspecialchars($f['nama']) ?></option>
@@ -150,12 +166,12 @@ include __DIR__ . '/../../includes/header.php';
             </div>
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Kode Jurusan <span class="required">*</span></label>
-                    <input type="text" name="kode" required placeholder="Contoh: TI, SI" maxlength="10" style="text-transform: uppercase;">
+                    <label class="form-label">Kode Jurusan <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="kode" required placeholder="Contoh: TI, SI" maxlength="10" style="text-transform: uppercase;">
                 </div>
                 <div class="form-group">
-                    <label>Jenjang <span class="required">*</span></label>
-                    <select name="jenjang" required>
+                    <label class="form-label">Jenjang <span class="required">*</span></label>
+                    <select class="form-select" name="jenjang" required>
                         <option value="D3">D3</option>
                         <option value="D4">D4</option>
                         <option value="S1">S1</option>
@@ -164,17 +180,17 @@ include __DIR__ . '/../../includes/header.php';
                 </div>
             </div>
             <div class="form-group">
-                <label>Nama Jurusan <span class="required">*</span></label>
-                <input type="text" name="nama" required placeholder="Contoh: Teknik Informatika">
+                <label class="form-label">Nama Jurusan <span class="required">*</span></label>
+                <input class="form-control" type="text" name="nama" required placeholder="Contoh: Teknik Informatika">
             </div>
             <div class="form-group">
-                <label>Ketua Jurusan</label>
-                <input type="text" name="ketua_jurusan" placeholder="Nama ketua jurusan">
+                <label class="form-label">Ketua Jurusan</label>
+                <input class="form-control" type="text" name="ketua_jurusan" placeholder="Nama ketua jurusan">
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalTambah')">Batal</button>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Simpan</button>
             </div>
         </form>
     </div>
@@ -194,8 +210,8 @@ include __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="id" id="edit_id">
 
             <div class="form-group">
-                <label>Fakultas <span class="required">*</span></label>
-                <select name="fakultas_id" id="edit_fakultas_id" required>
+                <label class="form-label">Fakultas <span class="required">*</span></label>
+                <select class="form-select" name="fakultas_id" id="edit_fakultas_id" required>
                     <?php foreach ($fakultas_list as $f): ?>
                         <option value="<?= $f['id'] ?>"><?= htmlspecialchars($f['nama']) ?></option>
                     <?php endforeach; ?>
@@ -203,12 +219,12 @@ include __DIR__ . '/../../includes/header.php';
             </div>
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Kode Jurusan <span class="required">*</span></label>
-                    <input type="text" name="kode" id="edit_kode" required maxlength="10" style="text-transform: uppercase;">
+                    <label class="form-label">Kode Jurusan <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="kode" id="edit_kode" required maxlength="10" style="text-transform: uppercase;">
                 </div>
                 <div class="form-group">
-                    <label>Jenjang <span class="required">*</span></label>
-                    <select name="jenjang" id="edit_jenjang" required>
+                    <label class="form-label">Jenjang <span class="required">*</span></label>
+                    <select class="form-select" name="jenjang" id="edit_jenjang" required>
                         <option value="D3">D3</option>
                         <option value="D4">D4</option>
                         <option value="S1">S1</option>
@@ -217,15 +233,15 @@ include __DIR__ . '/../../includes/header.php';
                 </div>
             </div>
             <div class="form-group">
-                <label>Nama Jurusan <span class="required">*</span></label>
-                <input type="text" name="nama" id="edit_nama" required>
+                <label class="form-label">Nama Jurusan <span class="required">*</span></label>
+                <input class="form-control" type="text" name="nama" id="edit_nama" required>
             </div>
             <div class="form-group">
-                <label>Ketua Jurusan</label>
-                <input type="text" name="ketua_jurusan" id="edit_ketua_jurusan">
+                <label class="form-label">Ketua Jurusan</label>
+                <input class="form-control" type="text" name="ketua_jurusan" id="edit_ketua_jurusan">
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalEdit')">Batal</button>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
             </div>

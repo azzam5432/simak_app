@@ -55,15 +55,15 @@ include __DIR__ . '/../../includes/header.php';
 <div class="table-container">
     <div class="table-header">
         <h3><i class="fas fa-university"></i> Master Fakultas</h3>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <input type="text" id="tableSearch" placeholder="Cari fakultas..." style="min-width: 200px;">
-            <button class="btn btn-primary" onclick="openModal('modalTambah')">
+        <div class="table-actions">
+            <input class="form-control" type="text" id="tableSearch" placeholder="Cari fakultas..." style="min-width: 200px;">
+            <button class="btn btn-success" onclick="openModal('modalTambah')">
                 <i class="fas fa-plus"></i> Tambah
             </button>
         </div>
     </div>
 
-    <table>
+    <table class="table table-striped table-hover align-middle">
         <thead>
             <tr>
                 <th>Kode</th>
@@ -94,7 +94,7 @@ include __DIR__ . '/../../includes/header.php';
                         <span class="row-actions">
                             <button class="btn btn-sm btn-icon btn-icon-light" title="Edit"
                                     onclick='editFakultas(<?= json_encode($f, JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'>
-                                <i class="fas fa-edit"></i>
+                                <i class="fas fa-edit"></i> Edit
                             </button>
                             <button class="btn btn-sm btn-icon btn-icon-danger-light" title="Hapus"
                                     onclick="deleteFakultas(<?= $f['id'] ?>, '<?= htmlspecialchars($f['nama'], ENT_QUOTES) ?>')">
@@ -133,22 +133,22 @@ include __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="action" value="create">
 
             <div class="form-group">
-                <label>Kode Fakultas <span class="required">*</span></label>
-                <input type="text" name="kode" required placeholder="Contoh: FT, FE, FIK" maxlength="10" style="text-transform: uppercase;">
+                <label class="form-label">Kode Fakultas <span class="required">*</span></label>
+                <input class="form-control" type="text" name="kode" required placeholder="Contoh: FT, FE, FIK" maxlength="10" style="text-transform: uppercase;">
                 <small class="help-text">Maksimal 10 karakter, otomatis huruf kapital</small>
             </div>
             <div class="form-group">
-                <label>Nama Fakultas <span class="required">*</span></label>
-                <input type="text" name="nama" required placeholder="Contoh: Fakultas Teknik">
+                <label class="form-label">Nama Fakultas <span class="required">*</span></label>
+                <input class="form-control" type="text" name="nama" required placeholder="Contoh: Fakultas Teknik">
             </div>
             <div class="form-group">
-                <label>Dekan</label>
-                <input type="text" name="dekan" placeholder="Nama dekan">
+                <label class="form-label">Dekan</label>
+                <input class="form-control" type="text" name="dekan" placeholder="Nama dekan">
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalTambah')">Batal</button>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Simpan</button>
             </div>
         </form>
     </div>
@@ -168,19 +168,19 @@ include __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="id" id="edit_id">
 
             <div class="form-group">
-                <label>Kode Fakultas <span class="required">*</span></label>
-                <input type="text" name="kode" id="edit_kode" required maxlength="10" style="text-transform: uppercase;">
+                <label class="form-label">Kode Fakultas <span class="required">*</span></label>
+                <input class="form-control" type="text" name="kode" id="edit_kode" required maxlength="10" style="text-transform: uppercase;">
             </div>
             <div class="form-group">
-                <label>Nama Fakultas <span class="required">*</span></label>
-                <input type="text" name="nama" id="edit_nama" required>
+                <label class="form-label">Nama Fakultas <span class="required">*</span></label>
+                <input class="form-control" type="text" name="nama" id="edit_nama" required>
             </div>
             <div class="form-group">
-                <label>Dekan</label>
-                <input type="text" name="dekan" id="edit_dekan">
+                <label class="form-label">Dekan</label>
+                <input class="form-control" type="text" name="dekan" id="edit_dekan">
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalEdit')">Batal</button>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
             </div>

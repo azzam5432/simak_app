@@ -139,7 +139,7 @@ include __DIR__ . '/../../includes/header.php';
 
     <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
         <a href="/simak_app/public/mahasiswa/cetak_pdf.php?type=report_krs&semester=<?= urlencode($semester) ?>" target="_blank"
-           class="btn btn-outline btn-sm">
+           class="btn btn-outline-danger btn-sm">
             <i class="fas fa-file-pdf"></i> Cetak PDF KRS
         </a>
     </div>
@@ -156,7 +156,7 @@ include __DIR__ . '/../../includes/header.php';
         </div>
     <?php else: ?>
         <div style="overflow-x: auto;">
-            <table>
+            <table class="table table-striped table-hover align-middle">
                 <thead>
                     <tr>
                         <th>No.</th>

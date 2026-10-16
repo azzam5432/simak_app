@@ -72,16 +72,16 @@ include __DIR__ . '/../../includes/header.php';
 <div class="table-container">
     <div class="table-header">
         <h3><i class="fas fa-user-graduate"></i> Data Mahasiswa</h3>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <input type="text" id="tableSearch" placeholder="Cari NIM, nama, jurusan..." style="min-width: 220px;">
-            <button class="btn btn-primary" onclick="openModal('modalTambah')">
+        <div class="table-actions">
+            <input class="form-control" type="text" id="tableSearch" placeholder="Cari NIM, nama, jurusan..." style="min-width: 220px;">
+            <button class="btn btn-success" onclick="openModal('modalTambah')">
                 <i class="fas fa-plus"></i> Tambah
             </button>
         </div>
     </div>
 
     <div style="overflow-x: auto;">
-        <table>
+        <table class="table table-striped table-hover align-middle">
             <thead>
                 <tr>
                     <th>NIM</th>
@@ -118,7 +118,7 @@ include __DIR__ . '/../../includes/header.php';
                         <td class="td-actions">
                             <span class="row-actions">
                                 <button class="btn btn-sm btn-icon btn-icon-light" title="Edit" onclick="editMahasiswa(<?= $m['mahasiswa_id'] ?>)">
-                                    <i class="fas fa-edit"></i>
+                                    <i class="fas fa-edit"></i> Edit
                                 </button>
                                 <button class="btn btn-sm btn-icon btn-icon-danger-light" title="Hapus" onclick="deleteMahasiswa(<?= $m['mahasiswa_id'] ?>, '<?= htmlspecialchars($m['nama'], ENT_QUOTES) ?>')">
                                     <i class="fas fa-trash"></i>
@@ -147,7 +147,7 @@ include __DIR__ . '/../../includes/header.php';
 <!-- Modal Tambah -->
 <div id="modalTambah" class="modal">
     <div class="modal-overlay" onclick="closeModal('modalTambah')"></div>
-    <div class="modal-content">
+    <div class="modal-content modal-lg">
         <div class="modal-header">
             <h3><i class="fas fa-user-plus"></i> Tambah Mahasiswa</h3>
             <button type="button" class="modal-close" onclick="closeModal('modalTambah')">&times;</button>
@@ -160,25 +160,25 @@ include __DIR__ . '/../../includes/header.php';
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>NIM <span class="required">*</span></label>
-                    <input type="text" name="nim" required placeholder="Contoh: 202401001">
+                    <label class="form-label">NIM <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="nim" required placeholder="Contoh: 202401001">
                 </div>
                 <div class="form-group">
-                    <label>Nama Lengkap <span class="required">*</span></label>
-                    <input type="text" name="nama" required>
+                    <label class="form-label">Nama Lengkap <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="nama" required>
                 </div>
             </div>
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email" placeholder="email@domain.com">
+                <label class="form-label">Email</label>
+                <input class="form-control" type="email" name="email" placeholder="email@domain.com">
             </div>
 
             <h4 class="section-title"><i class="fas fa-university"></i> Data Akademik</h4>
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Fakultas <span class="required">*</span></label>
-                    <select name="fakultas_id" id="tambah_fakultas" required onchange="filterJurusan('tambah')">
+                    <label class="form-label">Fakultas <span class="required">*</span></label>
+                    <select class="form-select" name="fakultas_id" id="tambah_fakultas" required onchange="filterJurusan('tambah')">
                         <option value="">-- Pilih Fakultas --</option>
                         <?php foreach ($fakultas_list as $f): ?>
                             <option value="<?= $f['id'] ?>"><?= htmlspecialchars($f['nama']) ?></option>
@@ -186,8 +186,8 @@ include __DIR__ . '/../../includes/header.php';
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Jurusan <span class="required">*</span></label>
-                    <select name="jurusan_id" id="tambah_jurusan" required>
+                    <label class="form-label">Jurusan <span class="required">*</span></label>
+                    <select class="form-select" name="jurusan_id" id="tambah_jurusan" required>
                         <option value="">-- Pilih Fakultas Dulu --</option>
                     </select>
                 </div>
@@ -195,13 +195,13 @@ include __DIR__ . '/../../includes/header.php';
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Tahun Ajaran <span class="required">*</span></label>
-                    <input type="text" name="tahun_ajaran" value="<?= $tahun_ajaran_otomatis ?>" required placeholder="2024/2025">
+                    <label class="form-label">Tahun Ajaran <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="tahun_ajaran" value="<?= $tahun_ajaran_otomatis ?>" required placeholder="2024/2025">
                     <small class="help-text">Otomatis mengikuti periode aktif, bisa diubah</small>
                 </div>
                 <div class="form-group">
-                    <label>Tingkat <span class="required">*</span></label>
-                    <select name="tingkat" id="tambah_tingkat" required onchange="hitungSemester('tambah')">
+                    <label class="form-label">Tingkat <span class="required">*</span></label>
+                    <select class="form-select" name="tingkat" id="tambah_tingkat" required onchange="hitungSemester('tambah')">
                         <option value="1">Tingkat 1</option>
                         <option value="2">Tingkat 2</option>
                         <option value="3">Tingkat 3</option>
@@ -211,8 +211,8 @@ include __DIR__ . '/../../includes/header.php';
             </div>
 
             <div class="form-group">
-                <label>Semester (Otomatis)</label>
-                <input type="text" id="tambah_semester_info" readonly style="background: #f4f6f8; font-weight: 600;">
+                <label class="form-label">Semester (Otomatis)</label>
+                <input class="form-control" type="text" id="tambah_semester_info" readonly style="background: #f4f6f8; font-weight: 600;">
                 <small class="help-text"><i class="fas fa-info-circle"></i> Semester <?= $semester_label ?> (<?= date('n') ?>/<?= date('m') ?> bulan ini)</small>
             </div>
 
@@ -220,19 +220,19 @@ include __DIR__ . '/../../includes/header.php';
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Username <span class="required">*</span></label>
-                    <input type="text" name="username" required>
+                    <label class="form-label">Username <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="username" required>
                 </div>
                 <div class="form-group">
-                    <label>Password <span class="required">*</span></label>
-                    <input type="text" name="password" value="password123" required>
+                    <label class="form-label">Password <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="password" value="password123" required>
                     <small class="help-text">Default: password123</small>
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalTambah')">Batal</button>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Simpan</button>
             </div>
         </form>
     </div>
@@ -241,7 +241,7 @@ include __DIR__ . '/../../includes/header.php';
 <!-- Modal Edit -->
 <div id="modalEdit" class="modal">
     <div class="modal-overlay" onclick="closeModal('modalEdit')"></div>
-    <div class="modal-content">
+    <div class="modal-content modal-lg">
         <div class="modal-header">
             <h3><i class="fas fa-user-edit"></i> Edit Mahasiswa</h3>
             <button type="button" class="modal-close" onclick="closeModal('modalEdit')">&times;</button>
@@ -255,25 +255,25 @@ include __DIR__ . '/../../includes/header.php';
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>NIM <span class="required">*</span></label>
-                    <input type="text" name="nim" id="edit_nim" required>
+                    <label class="form-label">NIM <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="nim" id="edit_nim" required>
                 </div>
                 <div class="form-group">
-                    <label>Nama Lengkap <span class="required">*</span></label>
-                    <input type="text" name="nama" id="edit_nama" required>
+                    <label class="form-label">Nama Lengkap <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="nama" id="edit_nama" required>
                 </div>
             </div>
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email" id="edit_email">
+                <label class="form-label">Email</label>
+                <input class="form-control" type="email" name="email" id="edit_email">
             </div>
 
             <h4 class="section-title"><i class="fas fa-university"></i> Data Akademik</h4>
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Fakultas <span class="required">*</span></label>
-                    <select name="fakultas_id" id="edit_fakultas" required onchange="filterJurusan('edit')">
+                    <label class="form-label">Fakultas <span class="required">*</span></label>
+                    <select class="form-select" name="fakultas_id" id="edit_fakultas" required onchange="filterJurusan('edit')">
                         <option value="">-- Pilih Fakultas --</option>
                         <?php foreach ($fakultas_list as $f): ?>
                             <option value="<?= $f['id'] ?>"><?= htmlspecialchars($f['nama']) ?></option>
@@ -281,8 +281,8 @@ include __DIR__ . '/../../includes/header.php';
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Jurusan <span class="required">*</span></label>
-                    <select name="jurusan_id" id="edit_jurusan" required>
+                    <label class="form-label">Jurusan <span class="required">*</span></label>
+                    <select class="form-select" name="jurusan_id" id="edit_jurusan" required>
                         <option value="">-- Pilih Jurusan --</option>
                     </select>
                 </div>
@@ -290,12 +290,12 @@ include __DIR__ . '/../../includes/header.php';
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Tahun Ajaran <span class="required">*</span></label>
-                    <input type="text" name="tahun_ajaran" id="edit_tahun_ajaran" required>
+                    <label class="form-label">Tahun Ajaran <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="tahun_ajaran" id="edit_tahun_ajaran" required>
                 </div>
                 <div class="form-group">
-                    <label>Tingkat <span class="required">*</span></label>
-                    <select name="tingkat" id="edit_tingkat" required onchange="hitungSemester('edit')">
+                    <label class="form-label">Tingkat <span class="required">*</span></label>
+                    <select class="form-select" name="tingkat" id="edit_tingkat" required onchange="hitungSemester('edit')">
                         <option value="1">Tingkat 1</option>
                         <option value="2">Tingkat 2</option>
                         <option value="3">Tingkat 3</option>
@@ -305,18 +305,18 @@ include __DIR__ . '/../../includes/header.php';
             </div>
 
             <div class="form-group">
-                <label>Semester (Otomatis)</label>
-                <input type="text" id="edit_semester_info" readonly style="background: #f4f6f8; font-weight: 600;">
+                <label class="form-label">Semester (Otomatis)</label>
+                <input class="form-control" type="text" id="edit_semester_info" readonly style="background: #f4f6f8; font-weight: 600;">
             </div>
 
             <h4 class="section-title"><i class="fas fa-key"></i> Akun Login</h4>
 
             <div class="form-group">
-                <label>Password (kosongkan jika tidak diubah)</label>
-                <input type="text" name="password" placeholder="Kosongkan jika tidak diubah">
+                <label class="form-label">Password (kosongkan jika tidak diubah)</label>
+                <input class="form-control" type="text" name="password" placeholder="Kosongkan jika tidak diubah">
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalEdit')">Batal</button>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
             </div>

@@ -152,8 +152,8 @@ include __DIR__ . '/../../includes/header.php';
     <!-- Filter -->
     <form method="GET" class="filter-bar-dosen">
         <div class="form-group" style="flex: 1; min-width: 240px;">
-            <label style="font-size: 13px;">Mata Kuliah</label>
-            <select name="course_id" required>
+            <label class="form-label" style="font-size: 13px;">Mata Kuliah</label>
+            <select class="form-select" name="course_id" required>
                 <option value="">-- Pilih Mata Kuliah --</option>
                 <?php foreach ($matakuliah as $mk): ?>
                     <option value="<?= $mk['id'] ?>" <?= $course_id == $mk['id'] ? 'selected' : '' ?>>
@@ -164,8 +164,8 @@ include __DIR__ . '/../../includes/header.php';
         </div>
 
         <div class="form-group" style="min-width: 140px;">
-            <label style="font-size: 13px;">Semester</label>
-            <select name="semester">
+            <label class="form-label" style="font-size: 13px;">Semester</label>
+            <select class="form-select" name="semester">
                 <option value="">-- Semua Semester --</option>
                 <?php foreach ($semester_options as $s): ?>
                     <option value="<?= $s ?>" <?= $semester == $s ? 'selected' : '' ?>>Smt <?= $s ?></option>
@@ -179,7 +179,7 @@ include __DIR__ . '/../../includes/header.php';
             </button>
             <?php if ($course_id && !empty($data)): ?>
                 <a href="/simak_app/public/dosen/cetak_pdf.php?type=nilai_ampu&course_id=<?= urlencode($course_id) ?>&semester=<?= urlencode($semester ?? '') ?>" target="_blank"
-                    class="btn btn-outline btn-sm">
+                    class="btn btn-outline-danger btn-sm">
                     <i class="fas fa-file-pdf"></i> PDF
                 </a>
             <?php endif; ?>
@@ -233,7 +233,7 @@ include __DIR__ . '/../../includes/header.php';
         </div>
 
         <!-- Detail Nilai -->
-        <table>
+        <table class="table table-striped table-hover align-middle">
             <thead>
                 <tr>
                     <th>NIM</th>

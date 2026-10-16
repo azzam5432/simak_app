@@ -67,7 +67,7 @@ include __DIR__ . '/../../includes/header.php';
     <div class="table-header">
         <h3><i class="fas fa-calendar-alt"></i> Data Jadwal Perkuliahan</h3>
         <div>
-            <button class="btn btn-primary" onclick="openModal('modalTambah')">
+            <button class="btn btn-success" onclick="openModal('modalTambah')">
                 <i class="fas fa-plus"></i> Tambah Jadwal
             </button>
         </div>
@@ -76,8 +76,8 @@ include __DIR__ . '/../../includes/header.php';
     <!-- Filter -->
     <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px;">
         <div class="form-group" style="margin: 0; min-width: 200px; flex: 1;">
-            <label style="font-size: 13px;">Mata Kuliah</label>
-            <select name="course_id" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+            <label class="form-label" style="font-size: 13px;">Mata Kuliah</label>
+            <select class="form-select" name="course_id">
                 <option value="">-- Semua --</option>
                 <?php foreach ($matakuliah as $mk): ?>
                     <option value="<?= $mk['id'] ?>" <?= $filter['course_id'] == $mk['id'] ? 'selected' : '' ?>>
@@ -88,8 +88,8 @@ include __DIR__ . '/../../includes/header.php';
         </div>
 
         <div class="form-group" style="margin: 0; min-width: 180px;">
-            <label style="font-size: 13px;">Dosen</label>
-            <select name="dosen_id" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+            <label class="form-label" style="font-size: 13px;">Dosen</label>
+            <select class="form-select" name="dosen_id">
                 <option value="">-- Semua --</option>
                 <?php foreach ($dosen_list as $d): ?>
                     <option value="<?= $d['dosen_id'] ?>" <?= $filter['dosen_id'] == $d['dosen_id'] ? 'selected' : '' ?>>
@@ -100,8 +100,8 @@ include __DIR__ . '/../../includes/header.php';
         </div>
 
         <div class="form-group" style="margin: 0; min-width: 140px;">
-            <label style="font-size: 13px;">Tingkat</label>
-            <select name="tingkat" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+            <label class="form-label" style="font-size: 13px;">Tingkat</label>
+            <select class="form-select" name="tingkat">
                 <option value="">-- Semua --</option>
                 <?php for ($i = 1; $i <= 4; $i++): ?>
                     <option value="<?= $i ?>" <?= $filter['tingkat'] == $i ? 'selected' : '' ?>>Tingkat <?= $i ?></option>
@@ -110,8 +110,8 @@ include __DIR__ . '/../../includes/header.php';
         </div>
 
         <div class="form-group" style="margin: 0; min-width: 130px;">
-            <label style="font-size: 13px;">Hari</label>
-            <select name="hari" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+            <label class="form-label" style="font-size: 13px;">Hari</label>
+            <select class="form-select" name="hari">
                 <option value="">-- Semua --</option>
                 <?php foreach ($hari_list as $h): ?>
                     <option value="<?= $h ?>" <?= $filter['hari'] == $h ? 'selected' : '' ?>><?= $h ?></option>
@@ -130,7 +130,7 @@ include __DIR__ . '/../../includes/header.php';
     </form>
 
     <div style="overflow-x: auto;">
-        <table>
+        <table class="table table-striped table-hover align-middle">
             <thead>
                 <tr>
                     <th>Kode MK</th>
@@ -169,7 +169,7 @@ include __DIR__ . '/../../includes/header.php';
                         <td class="td-actions">
                             <span class="row-actions">
                                 <button class="btn btn-sm btn-icon btn-icon-light" title="Edit" onclick="editJadwal(<?= $jd['id'] ?>)">
-                                    <i class="fas fa-edit"></i>
+                                    <i class="fas fa-edit"></i> Edit
                                 </button>
                                 <button class="btn btn-sm btn-icon btn-icon-danger-light" title="Hapus" onclick="deleteJadwal(<?= $jd['id'] ?>)">
                                     <i class="fas fa-trash"></i>
@@ -200,7 +200,7 @@ include __DIR__ . '/../../includes/header.php';
 <!-- ============================================ -->
 <div id="modalTambah" class="modal">
     <div class="modal-overlay" onclick="closeModal('modalTambah')"></div>
-    <div class="modal-content" style="max-width: 650px;">
+    <div class="modal-content modal-lg" style="max-width: 650px;">
         <div class="modal-header">
             <h3><i class="fas fa-calendar-plus"></i> Tambah Jadwal</h3>
             <button type="button" class="modal-close" onclick="closeModal('modalTambah')">&times;</button>
@@ -210,8 +210,8 @@ include __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="action" value="create">
 
             <div class="form-group">
-                <label>Mata Kuliah <span class="required">*</span></label>
-                <select name="course_id" required>
+                <label class="form-label">Mata Kuliah <span class="required">*</span></label>
+                <select class="form-select" name="course_id" required>
                     <option value="">-- Pilih Mata Kuliah --</option>
                     <?php foreach ($matakuliah as $mk): ?>
                         <option value="<?= $mk['id'] ?>">
@@ -223,8 +223,8 @@ include __DIR__ . '/../../includes/header.php';
             </div>
 
             <div class="form-group">
-                <label>Dosen <span class="required">*</span></label>
-                <select name="dosen_id" required>
+                <label class="form-label">Dosen <span class="required">*</span></label>
+                <select class="form-select" name="dosen_id" required>
                     <option value="">-- Pilih Dosen --</option>
                     <?php foreach ($dosen_list as $d): ?>
                         <option value="<?= $d['dosen_id'] ?>">
@@ -236,8 +236,8 @@ include __DIR__ . '/../../includes/header.php';
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Tingkat <span class="required">*</span></label>
-                    <select name="tingkat" required>
+                    <label class="form-label">Tingkat <span class="required">*</span></label>
+                    <select class="form-select" name="tingkat" required>
                         <option value="">-- Pilih --</option>
                         <?php for ($i = 1; $i <= 4; $i++): ?>
                             <option value="<?= $i ?>">Tingkat <?= $i ?></option>
@@ -245,8 +245,8 @@ include __DIR__ . '/../../includes/header.php';
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Rombel <span class="required">*</span></label>
-                    <select name="rombel" required>
+                    <label class="form-label">Rombel <span class="required">*</span></label>
+                    <select class="form-select" name="rombel" required>
                         <option value="">-- Pilih --</option>
                         <option value="A">A</option>
                         <option value="B">B</option>
@@ -259,8 +259,8 @@ include __DIR__ . '/../../includes/header.php';
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Hari <span class="required">*</span></label>
-                    <select name="hari" required>
+                    <label class="form-label">Hari <span class="required">*</span></label>
+                    <select class="form-select" name="hari" required>
                         <option value="">-- Pilih Hari --</option>
                         <?php foreach ($hari_list as $h): ?>
                             <option value="<?= $h ?>"><?= $h ?></option>
@@ -268,45 +268,45 @@ include __DIR__ . '/../../includes/header.php';
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Ruang</label>
-                    <input type="text" name="ruang" placeholder="Contoh: Lab 1">
+                    <label class="form-label">Ruang</label>
+                    <input class="form-control" type="text" name="ruang" placeholder="Contoh: Lab 1">
                 </div>
             </div>
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Jam Mulai <span class="required">*</span></label>
-                    <input type="time" name="jam_mulai" required>
+                    <label class="form-label">Jam Mulai <span class="required">*</span></label>
+                    <input class="form-control" type="time" name="jam_mulai" required>
                 </div>
                 <div class="form-group">
-                    <label>Jam Selesai <span class="required">*</span></label>
-                    <input type="time" name="jam_selesai" required>
+                    <label class="form-label">Jam Selesai <span class="required">*</span></label>
+                    <input class="form-control" type="time" name="jam_selesai" required>
                 </div>
             </div>
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Kapasitas <span class="required">*</span></label>
-                    <input type="number" name="kapasitas" value="30" min="1" required>
+                    <label class="form-label">Kapasitas <span class="required">*</span></label>
+                    <input class="form-control" type="number" name="kapasitas" value="30" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label>Tahun Ajaran</label>
-                    <input type="text" name="tahun_ajaran" value="<?= date('Y') ?>/<?= date('Y')+1 ?>" placeholder="2026/2027">
+                    <label class="form-label">Tahun Ajaran</label>
+                    <input class="form-control" type="text" name="tahun_ajaran" value="<?= date('Y') ?>/<?= date('Y')+1 ?>" placeholder="2026/2027">
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Semester Ke</label>
-                <select name="semester_ke">
+                <label class="form-label">Semester Ke</label>
+                <select class="form-select" name="semester_ke">
                     <?php for ($i = 1; $i <= 8; $i++): ?>
                         <option value="<?= $i ?>">Semester <?= $i ?></option>
                     <?php endfor; ?>
                 </select>
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalTambah')">Batal</button>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Simpan</button>
             </div>
         </form>
     </div>
@@ -317,7 +317,7 @@ include __DIR__ . '/../../includes/header.php';
 <!-- ============================================ -->
 <div id="modalEdit" class="modal">
     <div class="modal-overlay" onclick="closeModal('modalEdit')"></div>
-    <div class="modal-content" style="max-width: 650px;">
+    <div class="modal-content modal-lg" style="max-width: 650px;">
         <div class="modal-header">
             <h3><i class="fas fa-calendar-alt"></i> Edit Jadwal</h3>
             <button type="button" class="modal-close" onclick="closeModal('modalEdit')">&times;</button>
@@ -328,8 +328,8 @@ include __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="id" id="edit_id">
 
             <div class="form-group">
-                <label>Mata Kuliah <span class="required">*</span></label>
-                <select name="course_id" id="edit_course_id" required>
+                <label class="form-label">Mata Kuliah <span class="required">*</span></label>
+                <select class="form-select" name="course_id" id="edit_course_id" required>
                     <?php foreach ($matakuliah as $mk): ?>
                         <option value="<?= $mk['id'] ?>">
                             <?= htmlspecialchars($mk['kode_mk']) ?> - <?= htmlspecialchars($mk['nama_mk']) ?>
@@ -339,8 +339,8 @@ include __DIR__ . '/../../includes/header.php';
             </div>
 
             <div class="form-group">
-                <label>Dosen <span class="required">*</span></label>
-                <select name="dosen_id" id="edit_dosen_id" required>
+                <label class="form-label">Dosen <span class="required">*</span></label>
+                <select class="form-select" name="dosen_id" id="edit_dosen_id" required>
                     <?php foreach ($dosen_list as $d): ?>
                         <option value="<?= $d['dosen_id'] ?>">
                             <?= htmlspecialchars($d['nid']) ?> - <?= htmlspecialchars($d['nama']) ?>
@@ -351,16 +351,16 @@ include __DIR__ . '/../../includes/header.php';
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Tingkat <span class="required">*</span></label>
-                    <select name="tingkat" id="edit_tingkat" required>
+                    <label class="form-label">Tingkat <span class="required">*</span></label>
+                    <select class="form-select" name="tingkat" id="edit_tingkat" required>
                         <?php for ($i = 1; $i <= 4; $i++): ?>
                             <option value="<?= $i ?>">Tingkat <?= $i ?></option>
                         <?php endfor; ?>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Rombel <span class="required">*</span></label>
-                    <select name="rombel" id="edit_rombel" required>
+                    <label class="form-label">Rombel <span class="required">*</span></label>
+                    <select class="form-select" name="rombel" id="edit_rombel" required>
                         <option value="A">A</option>
                         <option value="B">B</option>
                         <option value="C">C</option>
@@ -372,51 +372,51 @@ include __DIR__ . '/../../includes/header.php';
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Hari <span class="required">*</span></label>
-                    <select name="hari" id="edit_hari" required>
+                    <label class="form-label">Hari <span class="required">*</span></label>
+                    <select class="form-select" name="hari" id="edit_hari" required>
                         <?php foreach ($hari_list as $h): ?>
                             <option value="<?= $h ?>"><?= $h ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Ruang</label>
-                    <input type="text" name="ruang" id="edit_ruang">
+                    <label class="form-label">Ruang</label>
+                    <input class="form-control" type="text" name="ruang" id="edit_ruang">
                 </div>
             </div>
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Jam Mulai <span class="required">*</span></label>
-                    <input type="time" name="jam_mulai" id="edit_jam_mulai" required>
+                    <label class="form-label">Jam Mulai <span class="required">*</span></label>
+                    <input class="form-control" type="time" name="jam_mulai" id="edit_jam_mulai" required>
                 </div>
                 <div class="form-group">
-                    <label>Jam Selesai <span class="required">*</span></label>
-                    <input type="time" name="jam_selesai" id="edit_jam_selesai" required>
+                    <label class="form-label">Jam Selesai <span class="required">*</span></label>
+                    <input class="form-control" type="time" name="jam_selesai" id="edit_jam_selesai" required>
                 </div>
             </div>
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Kapasitas <span class="required">*</span></label>
-                    <input type="number" name="kapasitas" id="edit_kapasitas" min="1" required>
+                    <label class="form-label">Kapasitas <span class="required">*</span></label>
+                    <input class="form-control" type="number" name="kapasitas" id="edit_kapasitas" min="1" required>
                 </div>
                 <div class="form-group">
-                    <label>Tahun Ajaran</label>
-                    <input type="text" name="tahun_ajaran" id="edit_tahun_ajaran">
+                    <label class="form-label">Tahun Ajaran</label>
+                    <input class="form-control" type="text" name="tahun_ajaran" id="edit_tahun_ajaran">
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Semester Ke</label>
-                <select name="semester_ke" id="edit_semester_ke">
+                <label class="form-label">Semester Ke</label>
+                <select class="form-select" name="semester_ke" id="edit_semester_ke">
                     <?php for ($i = 1; $i <= 8; $i++): ?>
                         <option value="<?= $i ?>">Semester <?= $i ?></option>
                     <?php endfor; ?>
                 </select>
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalEdit')">Batal</button>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
             </div>

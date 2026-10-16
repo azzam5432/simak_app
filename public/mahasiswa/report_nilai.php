@@ -92,12 +92,23 @@ include __DIR__ . '/../../includes/header.php';
 .filter-bar-mhs {
     display: flex;
     gap: 10px;
-    flex-wrap: wrap;
-    align-items: flex-end;
+    flex-wrap: nowrap;
+    align-items: center;
     padding: 15px;
     background: #f8f9fa;
     border-radius: 8px;
     margin-bottom: 20px;
+}
+.filter-bar-mhs .form-group {
+    margin-bottom: 0;
+    flex: 1 1 auto;
+}
+.filter-bar-mhs .filter-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-left: auto;
+    flex-shrink: 0;
 }
 .filter-bar-mhs select {
     padding: 8px 12px;
@@ -113,9 +124,9 @@ include __DIR__ . '/../../includes/header.php';
 
     <!-- Filter -->
     <form method="GET" class="filter-bar-mhs">
-        <div class="form-group" style="min-width: 160px;">
-            <label style="font-size: 13px;">Semester</label>
-            <select name="semester" onchange="this.form.submit()">
+        <div class="form-group">
+            <label class="form-label" style="font-size: 13px;">Semester</label>
+            <select class="form-select" name="semester" onchange="this.form.submit()">
                 <option value="">-- Semua Semester (IPK) --</option>
                 <?php foreach ($semesters as $s): ?>
                     <option value="<?= $s['semester'] ?>" <?= $semester == $s['semester'] ? 'selected' : '' ?>>
@@ -124,12 +135,12 @@ include __DIR__ . '/../../includes/header.php';
                 <?php endforeach; ?>
             </select>
         </div>
-        <div style="display: flex; gap: 8px;">
+        <div class="filter-actions">
             <button type="submit" class="btn btn-primary btn-sm">
                 <i class="fas fa-search"></i> Tampilkan
             </button>
             <a href="/simak_app/public/mahasiswa/cetak_pdf.php?type=report_nilai&semester=<?= urlencode($semester ?? '') ?>" target="_blank"
-                class="btn btn-outline btn-sm">
+                class="btn btn-outline-danger btn-sm">
                 <i class="fas fa-file-pdf"></i> PDF
             </a>
         </div>
@@ -162,7 +173,7 @@ include __DIR__ . '/../../includes/header.php';
             <i class="fas fa-chart-bar"></i> IPS per Semester
         </h4>
         <div style="overflow-x: auto; margin-bottom: 20px;">
-            <table>
+            <table class="table table-striped table-hover align-middle">
                 <thead>
                     <tr>
                         <th>Semester</th>
@@ -213,7 +224,7 @@ include __DIR__ . '/../../includes/header.php';
         </div>
     <?php else: ?>
         <div style="overflow-x: auto;">
-            <table>
+            <table class="table table-striped table-hover align-middle">
                 <thead>
                     <tr>
                         <th>Smt</th>

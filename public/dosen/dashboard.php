@@ -59,7 +59,7 @@ include __DIR__ . '/../../includes/header.php';
             <p>Silakan periksa jadwal lengkap di menu Jadwal Mengajar</p>
         </div>
     <?php else: ?>
-        <table>
+        <table class="table table-striped table-hover align-middle">
             <thead>
                 <tr>
                     <th>Kode</th>

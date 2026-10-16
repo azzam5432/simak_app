@@ -17,10 +17,10 @@ echo "<!DOCTYPE html>
         table { width: 100%; border-collapse: collapse; }
         td, th { padding: 8px 12px; border: 1px solid #ddd; }
         th { background: #f8f9fa; }
-        .badge { padding: 2px 10px; border-radius: 12px; font-size: 12px; color: #fff; }
-        .badge-success { background: #2ecc71; }
-        .badge-danger { background: #e74c3c; }
-        .badge-warning { background: #f39c12; }
+        .badge { padding: 0; border-radius: 0; font-size: 12px; background: none; }
+        .badge-success { color: #27ae60; }
+        .badge-danger { color: #c0392b; }
+        .badge-warning { color: #d68910; }
     </style>
 </head>
 <body>
@@ -178,7 +178,7 @@ $files = [
     '../includes/footer.php',
     'index.php',
     'logout.php',
-    'assets/css/style.css',
+    'assets/css/base.css',
     'assets/js/app.js'
 ];
 

@@ -34,10 +34,11 @@ function checkAccess($allowedRoles = []) {
                 body { font-family: Arial; text-align: center; padding: 50px; background: #f8f9fa; }
                 .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
                 h1 { color: #e74c3c; }
-                .role-badge { display: inline-block; padding: 4px 15px; border-radius: 20px; color: #fff; font-weight: bold; }
-                .role-admin { background: #e74c3c; }
-                .role-dosen { background: #3498db; }
-                .role-mahasiswa { background: #2ecc71; }
+                /* role-badge dihilangkan: teks bold polos */
+                .role-badge { display: inline; padding: 0; border-radius: 0; color: inherit; font-weight: bold; background: none; }
+                .role-admin { color: #e74c3c; }
+                .role-dosen { color: #3498db; }
+                .role-mahasiswa { color: #27ae60; }
                 .btn { display: inline-block; padding: 10px 25px; background: #3498db; color: #fff; text-decoration: none; border-radius: 5px; margin-top: 15px; }
                 .btn:hover { background: #2980b9; }
             </style>

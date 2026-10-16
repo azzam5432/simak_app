@@ -133,7 +133,7 @@ include __DIR__ . '/../../includes/header.php';
         </span>
 
         <?php if ($status_irs === 'pending' && $ada_di_irs): ?>
-            <button class="btn btn-outline btn-sm" onclick="printIRS()">
+            <button class="btn btn-outline-primary btn-sm" onclick="printIRS()">
                 <i class="fas fa-print"></i> Cetak Bukti
             </button>
         <?php endif; ?>
@@ -164,17 +164,18 @@ include __DIR__ . '/../../includes/header.php';
 <?php endif; ?>
 
 <!-- ===================== KONTEN UTAMA ===================== -->
-<div class="irs-grid">
+<div class="row g-4">
 
     <!-- KOLOM KIRI: DAFTAR IRS -->
-    <div>
-        <div class="table-container">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body p-4">
             <div class="table-header">
                 <h3><i class="fas fa-clipboard-list"></i> Mata Kuliah Diambil</h3>
             </div>
 
             <?php if ($irs_list): ?>
-                <table class="irs-table">
+                <table class="irs-table table table-striped table-hover align-middle">
                     <thead>
                         <tr>
                             <th>Kode</th>
@@ -229,6 +230,7 @@ include __DIR__ . '/../../includes/header.php';
                     <p>Ambil Paket Pembelajaran di samping untuk menyusun IRS semester <?= $semester ?>.</p>
                 </div>
             <?php endif; ?>
+            </div>
         </div>
 
         <!-- Panduan singkat -->
@@ -239,7 +241,7 @@ include __DIR__ . '/../../includes/header.php';
     </div>
 
     <!-- KOLOM KANAN: PAKET -->
-    <div>
+    <div class="col-lg-4">
         <div class="irs-paket-card">
             <div class="irs-paket-head">
                 <div class="irs-paket-icon"><i class="fas fa-box-open"></i></div>
@@ -290,7 +292,7 @@ include __DIR__ . '/../../includes/header.php';
 
                 <form method="POST" onsubmit="return confirmAmbil()">
                     <input type="hidden" name="action" value="add_paket">
-                    <button type="submit" class="btn btn-primary btn-block btn-lg"
+                    <button type="submit" class="btn btn-primary w-100 btn-lg"
                         <?= $paket_bisa_diambil ? '' : 'disabled' ?>>
                         <i class="fas fa-cart-plus"></i>
                         Ambil Semua Paket (<?= count($paket_courses) ?> MK · <?= $paket_sks ?> SKS)

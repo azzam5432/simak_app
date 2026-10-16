@@ -91,7 +91,7 @@ include __DIR__ . '/../../includes/header.php';
         <h3><i class="fas fa-chalkboard"></i> Pilih Kelas</h3>
     </div>
     <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-        <select name="course_id" required style="padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px; min-width: 200px;">
+        <select class="form-select" name="course_id" required>
             <option value="">-- Pilih Mata Kuliah --</option>
             <?php foreach ($matakuliah as $mk): ?>
                 <option value="<?= $mk['id'] ?>" <?= $course_id == $mk['id'] ? 'selected' : '' ?>>
@@ -100,7 +100,7 @@ include __DIR__ . '/../../includes/header.php';
                 </option>
             <?php endforeach; ?>
         </select>
-        <input type="date" name="tanggal" value="<?= $tanggal ?>" style="padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px;">
+        <input class="form-control" type="date" name="tanggal" value="<?= $tanggal ?>">
         <button type="submit" class="btn btn-primary">Tampilkan</button>
     </form>
 </div>
@@ -131,7 +131,7 @@ include __DIR__ . '/../../includes/header.php';
                       onsubmit="return confirm('Kirim token presensi via email ke semua mahasiswa MK ini?');">
                     <input type="hidden" name="action" value="kirim_token_email">
                     <input type="hidden" name="course_id" value="<?= $sesi_aktif['course_id'] ?>">
-                    <button type="submit" class="btn btn-outline btn-sm">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-envelope"></i> Kirim Token via Email
                     </button>
                 </form>
@@ -147,7 +147,7 @@ include __DIR__ . '/../../includes/header.php';
             <form method="POST" style="flex: 1;">
                 <input type="hidden" name="action" value="open_session">
                 <input type="hidden" name="course_id" value="<?= $course_id ?>">
-                <button type="submit" class="btn btn-success btn-block" style="padding: 15px; font-size: 16px;">
+                <button type="submit" class="btn btn-success w-100" style="padding: 15px; font-size: 16px;">
                     <i class="fas fa-play-circle"></i> Buka Sesi Presensi
                 </button>
             </form>
@@ -171,7 +171,7 @@ include __DIR__ . '/../../includes/header.php';
         <input type="hidden" name="course_id" value="<?= $course_id ?>">
         <input type="hidden" name="tanggal" value="<?= $tanggal ?>">
         
-        <table>
+        <table class="table table-striped table-hover align-middle">
             <thead>
                 <tr>
                     <th>NIM</th>
@@ -185,7 +185,7 @@ include __DIR__ . '/../../includes/header.php';
                         <td><strong><?= htmlspecialchars($m['nim']) ?></strong></td>
                         <td><?= htmlspecialchars($m['nama']) ?></td>
                         <td>
-                            <select name="presensi[<?= $m['mahasiswa_id'] ?>]" required>
+                            <select class="form-select" name="presensi[<?= $m['mahasiswa_id'] ?>]" required>
                                 <option value="hadir" <?= ($presensi_map[$m['id']] ?? '') === 'hadir' ? 'selected' : '' ?>>Hadir</option>
                                 <option value="izin" <?= ($presensi_map[$m['id']] ?? '') === 'izin' ? 'selected' : '' ?>>Izin</option>
                                 <option value="sakit" <?= ($presensi_map[$m['id']] ?? '') === 'sakit' ? 'selected' : '' ?>>Sakit</option>
@@ -210,7 +210,7 @@ include __DIR__ . '/../../includes/header.php';
         <h3><i class="fas fa-chart-bar"></i> Rekap Presensi</h3>
     </div>
     
-    <table>
+    <table class="table table-striped table-hover align-middle">
         <thead>
             <tr>
                 <th>NIM</th>

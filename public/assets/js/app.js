@@ -59,34 +59,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const statusBadges = document.querySelectorAll('.status-badge');
-    statusBadges.forEach(badge => {
-        const status = badge.textContent.trim().toLowerCase();
+    // Status dijadikan teks berwarna (tanpa badge/kotak)
+    const statusLabels = document.querySelectorAll('.status-badge');
+    statusLabels.forEach(label => {
+        const status = label.textContent.trim().toLowerCase();
         const colors = {
-            'pending': '#f39c12',
-            'approved': '#2ecc71',
-            'rejected': '#e74c3c',
-            'draft': '#95a5a6',
-            'verified': '#2ecc71',
-            'hadir': '#2ecc71',
-            'izin': '#f39c12',
-            'sakit': '#3498db',
-            'alpa': '#e74c3c',
-            'active': '#2ecc71',
-            'urgent': '#e74c3c',
-            'submitted': '#3498db',
-            'expired': '#95a5a6',
-            'low': '#2ecc71',
-            'medium': '#f39c12',
-            'high': '#e74c3c'
+            'pending': '#d68910',
+            'approved': '#27ae60',
+            'rejected': '#c0392b',
+            'draft': '#7f8c8d',
+            'verified': '#27ae60',
+            'hadir': '#27ae60',
+            'izin': '#d68910',
+            'sakit': '#2980b9',
+            'alpa': '#c0392b',
+            'active': '#27ae60',
+            'urgent': '#c0392b',
+            'submitted': '#2980b9',
+            'expired': '#7f8c8d',
+            'low': '#27ae60',
+            'medium': '#d68910',
+            'high': '#c0392b'
         };
-        badge.style.background = colors[status] || '#95a5a6';
-        badge.style.color = '#fff';
-        badge.style.padding = '4px 12px';
-        badge.style.borderRadius = '20px';
-        badge.style.fontSize = '12px';
-        badge.style.fontWeight = '600';
-        badge.style.display = 'inline-block';
+        label.style.background = 'none';
+        label.style.padding = '0';
+        label.style.borderRadius = '0';
+        label.style.color = colors[status] || 'inherit';
+        label.style.fontSize = '12px';
+        label.style.fontWeight = '600';
+        label.style.display = 'inline';
     });
 
     const modals = document.querySelectorAll('.modal');
@@ -96,7 +97,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const closeBtnAlt = modal.querySelector('.btn-close-modal');
         
         function closeModal() {
-            modal.style.display = 'none';
+            // Bersihkan style inline & class agar modal selalu bisa dibuka lagi
+            // (inline display:none akan menimpa CSS .modal.active)
+            modal.classList.remove('active');
+            modal.style.display = '';
+            document.body.style.overflow = '';
         }
         
         if (closeBtn) closeBtn.addEventListener('click', closeModal);
@@ -423,8 +428,7 @@ function showToast(message, type = 'success') {
         padding: 15px 20px;
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        border-left: 4px solid ${colors[type] || '#3498db'};
-        color: #333;
+        color: ${colors[type] || '#2c3e50'};
         font-size: 14px;
         animation: slideIn 0.3s ease;
         min-width: 250px;

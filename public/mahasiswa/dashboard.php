@@ -142,8 +142,8 @@ include __DIR__ . '/../../includes/header.php';
     <div class="table-header">
         <h3><i class="fas fa-bullhorn"></i> Pengumuman Terbaru 
             <?php if ($stats['belum_dibaca'] > 0): ?>
-                <span class="badge" style="background: #e74c3c; color: #fff; padding: 2px 12px; border-radius: 20px; font-size: 12px;">
-                    <?= $stats['belum_dibaca'] ?> baru
+                <span style="color: #c0392b; font-size: 12px; font-weight: 600;">
+                    (<?= $stats['belum_dibaca'] ?> baru)
                 </span>
             <?php endif; ?>
         </h3>
@@ -159,10 +159,10 @@ include __DIR__ . '/../../includes/header.php';
                     <div>
                         <strong><?= htmlspecialchars($ann['judul']) ?></strong>
                         <?php if ($ann['priority'] === 'high'): ?>
-                            <span class="badge" style="background: #e74c3c; color: #fff; padding: 2px 10px; border-radius: 20px; font-size: 10px;">Penting</span>
+                            <span style="color: #c0392b; font-weight: 600; font-size: 10px;">Penting</span>
                         <?php endif; ?>
                         <?php if (!$ann['is_read']): ?>
-                            <span class="badge" style="background: #3498db; color: #fff; padding: 2px 10px; border-radius: 20px; font-size: 10px;">Baru</span>
+                            <span style="color: #2980b9; font-weight: 600; font-size: 10px;">Baru</span>
                         <?php endif; ?>
                     </div>
                     <small style="color: #7f8c8d;"><?= date('d-m-Y H:i', strtotime($ann['created_at'])) ?></small>

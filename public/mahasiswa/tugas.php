@@ -36,7 +36,7 @@ include __DIR__ . '/../../includes/header.php';
     <div class="table-header">
         <h3><i class="fas fa-file-alt"></i> Daftar Tugas</h3>
         <div>
-            <input type="text" id="tableSearch" placeholder="Cari tugas..." style="padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px;">
+            <input class="form-control" type="text" id="tableSearch" placeholder="Cari tugas...">
         </div>
     </div>
     
@@ -45,7 +45,7 @@ include __DIR__ . '/../../includes/header.php';
             Belum ada tugas yang diberikan
         </p>
     <?php else: ?>
-        <table>
+        <table class="table table-striped table-hover align-middle">
             <thead>
                 <tr>
                     <th>Mata Kuliah</th>
@@ -81,7 +81,7 @@ include __DIR__ . '/../../includes/header.php';
                             <?php endif; ?>
                         </td>
                         <td>
-                            <span class="status-badge" style="background: <?= $status_color[$status_tugas] ?>; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                            <span style="font-weight: 600; font-size: 12px;">
                                 <?= $status_label[$status_tugas] ?? 'Unknown' ?>
                             </span>
                             <?php if ($t['submission_nilai'] !== null): ?>
@@ -108,15 +108,15 @@ include __DIR__ . '/../../includes/header.php';
 
 <div id="modalSubmit" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999;">
     <div class="modal-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; border-radius: 12px; max-width: 450px; width: 90%;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; max-width: 450px; width: 90%;">
         <h3 style="margin-bottom: 10px;"><i class="fas fa-upload"></i> Kumpulkan Tugas</h3>
         <p id="submitInfo" style="color: #7f8c8d; margin-bottom: 15px;"></p>
         <form method="POST" enctype="multipart/form-data">
             <input type="hidden" name="action" value="submit">
             <input type="hidden" name="task_id" id="submitTaskId">
             <div class="form-group">
-                <label>Catatan (opsional)</label>
-                <textarea name="catatan" rows="3" placeholder="Tambahkan catatan untuk tugas..."></textarea>
+                <label class="form-label">Catatan (opsional)</label>
+                <textarea class="form-control" name="catatan" rows="3" placeholder="Tambahkan catatan untuk tugas..."></textarea>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="submit" class="btn btn-primary"><i class="fas fa-upload"></i> Kumpulkan</button>

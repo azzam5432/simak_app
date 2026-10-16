@@ -102,23 +102,20 @@ $program_studi = $irs_data[0]['jurusan_nama'] ?? '';
             font-size: 12px;
         }
         .status-print {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 12px;
+            display: inline;
+            padding: 0;
+            border-radius: 0;
             font-size: 11px;
             font-weight: bold;
         }
         .status-approved {
-            background: #d4edda;
-            color: #155724;
+            color: #1e8449;
         }
         .status-pending {
-            background: #fff3cd;
-            color: #856404;
+            color: #b9770e;
         }
         .status-rejected {
-            background: #f8d7da;
-            color: #721c24;
+            color: #c0392b;
         }
         @media print {
             body { padding: 20px; }
@@ -146,7 +143,7 @@ $program_studi = $irs_data[0]['jurusan_nama'] ?? '';
         </span>
     </div>
     
-    <table>
+    <table class="table table-striped table-hover align-middle">
         <thead>
             <tr>
                 <th width="15%">Kode MK</th>

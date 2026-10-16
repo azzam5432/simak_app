@@ -1,0 +1,93 @@
+/* ============================================
+   DASHBOARD — hanya halaman dashboard admin
+   (banner sambutan + aksi cepat)
+   ============================================ */
+
+.quick-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px 10px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.09);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    text-align: center;
+    color: var(--secondary);
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.quick-action i {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    background: #eaf2fa;
+    color: var(--primary);
+    transition: all 0.2s ease;
+}
+
+.quick-action.qa-secondary i { background: #e6eaf1; color: var(--secondary); }
+.quick-action.qa-success i { background: #e9f9f0; color: var(--success-dark); }
+.quick-action.qa-warning i { background: #fdf3e3; color: var(--warning-dark); }
+.quick-action.qa-danger i { background: #fdeef0; color: var(--danger); }
+
+.quick-action:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12); color: var(--primary-dark); }
+.quick-action:hover i { background: var(--primary); color: #fff; }
+
+/* Hover mengikuti warna masing-masing aksi cepat (bukan selalu biru) */
+.quick-action.qa-secondary:hover { color: var(--secondary); }
+.quick-action.qa-secondary:hover i { background: var(--secondary); color: #fff; }
+.quick-action.qa-success:hover { color: var(--success-dark); }
+.quick-action.qa-success:hover i { background: var(--success-dark); color: #fff; }
+.quick-action.qa-warning:hover { color: var(--warning-dark); }
+.quick-action.qa-warning:hover i { background: var(--warning-dark); color: #fff; }
+.quick-action.qa-danger:hover { color: var(--danger); }
+.quick-action.qa-danger:hover i { background: var(--danger); color: #fff; }
+
+/* ===== Banner sambutan dashboard ===== */
+.dash-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    background: linear-gradient(120deg, var(--secondary) 0%, #1d3348 55%, var(--primary-dark) 100%);
+    color: #fff;
+    border-radius: 14px;
+    padding: 26px 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Dekorasi lingkaran lembut di kanan banner */
+.dash-hero::after {
+    content: '';
+    position: absolute;
+    right: -60px;
+    top: -60px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+}
+
+.dash-hero h2 { color: #fff; font-size: 21px; font-weight: 700; margin-bottom: 6px; }
+.dash-hero h2 i { color: var(--primary-light); margin-right: 8px; }
+.dash-hero .dash-hero-sub { color: rgba(255, 255, 255, 0.75); font-size: 13.5px; max-width: 560px; line-height: 1.6; }
+.dash-hero .dash-hero-sub strong { color: #fff; }
+
+@media (max-width: 768px) {
+    .dash-hero { padding: 20px 22px; }
+    .dash-hero h2 { font-size: 18px; }
+}

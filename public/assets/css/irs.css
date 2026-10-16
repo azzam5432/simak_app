@@ -1,0 +1,178 @@
+/* ============================================
+   IRS — halaman IRS mahasiswa, Validasi IRS admin,
+   dan Verifikasi Nilai admin
+   ============================================ */
+
+.irs-toolbar { border: 1px solid rgba(0, 0, 0, 0.05); }
+.irs-paket-card { border: 1px solid rgba(0, 0, 0, 0.05); }
+.irs-group { border: 1px solid rgba(0, 0, 0, 0.05); }
+
+/* ===== Kartu pengajuan (validasi IRS / verifikasi nilai) ===== */
+.irs-group { border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; background: #fff; box-shadow: 0 2px 14px rgba(0, 0, 0, 0.09); }
+
+.irs-group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+
+.irs-group-title { margin: 0; font-size: 16px; color: var(--secondary); display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.irs-group-nim { font-weight: 500; font-size: 13px; color: var(--gray-dark); background: #e6eaee; padding: 2px 10px; border-radius: 12px; }
+.irs-group-meta { color: var(--gray-dark); font-size: 13px; }
+
+/* ===== Toolbar IRS mahasiswa ===== */
+.irs-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 14px rgba(0, 0, 0, 0.09);
+    padding: 16px 22px;
+    margin-bottom: 25px;
+}
+
+.irs-toolbar-left { display: flex; align-items: center; }
+.irs-toolbar-right { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.irs-semester-picker { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.irs-sem-title { font-size: 13px; font-weight: 700; color: var(--gray-dark); margin-right: 6px; }
+
+.irs-sem-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 32px;
+    padding: 0 9px;
+    border-radius: 8px;
+    background: #e6ebf0;
+    color: var(--secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.irs-sem-btn:hover { background: var(--primary); color: #fff; }
+.irs-sem-btn.active { background: var(--primary); color: #fff; }
+.irs-sem-btn.current:not(.active) { color: var(--primary-dark); }
+.irs-sem-btn.locked { background: #f0f2f4; color: #b9c1c9; cursor: not-allowed; }
+.irs-sem-btn.locked:hover { background: #f0f2f4; color: #b9c1c9; }
+
+.irs-sem-hint { margin-left: 10px; font-size: 12px; color: var(--gray-dark); }
+
+/* Banner lihat-saja (bukan semester aktif) */
+.irs-lock-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #eef1f4;
+    border-radius: 8px;
+    padding: 13px 18px;
+    margin-bottom: 20px;
+    font-size: 13.5px;
+    color: var(--secondary);
+}
+
+.irs-lock-banner > i { font-size: 18px; color: var(--gray-dark); flex-shrink: 0; }
+.irs-lock-banner small { color: var(--gray-dark); }
+.irs-lock-banner-warning { background: #fef7e6; }
+.irs-lock-banner-warning > i { color: var(--warning-dark); }
+
+/* SKS progress */
+.irs-sks-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 13px; color: var(--secondary); }
+.irs-sks-pill strong { font-size: 16px; }
+.irs-sks-pill strong.over { color: var(--danger); }
+.irs-sks-track { display: inline-block; width: 90px; height: 6px; background: #e3e8ed; border-radius: 4px; overflow: hidden; }
+.irs-sks-fill { display: block; height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.4s ease; }
+.irs-sks-fill.near { background: var(--warning); }
+.irs-sks-fill.over { background: var(--danger); }
+
+/* Status IRS (teks polos berwarna) */
+.irs-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.irs-status-pending { color: #d68910; }
+.irs-status-approved { color: #27ae60; }
+.irs-status-rejected { color: #c0392b; }
+.irs-status-empty { color: var(--gray-dark); }
+
+.irs-kode {
+    display: inline-block;
+    background: #eaf2fa;
+    color: var(--primary-dark);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.irs-mk-nama { font-weight: 600; color: var(--secondary); }
+.irs-mk-sub { font-size: 12px; color: var(--gray-dark); margin-top: 2px; }
+.irs-jadwal { font-size: 12.5px; color: #555; word-break: break-word; }
+
+.irs-empty { text-align: center; padding: 32px 20px; }
+.irs-empty i { font-size: 26px; color: #d5dbe1; margin-bottom: 10px; display: inline-block; }
+.irs-empty h4 { color: var(--secondary); font-size: 16px; margin-bottom: 6px; }
+.irs-empty p { color: var(--gray-dark); font-size: 13.5px; max-width: 340px; margin: 0 auto; }
+.irs-empty-compact { padding: 30px 16px; }
+
+.irs-paket-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 14px rgba(0, 0, 0, 0.09); position: sticky; top: 80px; }
+.irs-paket-head { display: flex; align-items: flex-start; gap: 13px; margin-bottom: 16px; }
+
+.irs-paket-icon {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    font-size: 19px;
+}
+
+.irs-paket-head h3 { font-size: 17px; color: var(--secondary); font-weight: 700; }
+.irs-paket-head p { font-size: 12px; color: var(--gray-dark); margin-top: 3px; line-height: 1.5; }
+
+.irs-paket-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #eaf1f8;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 13px;
+    color: var(--secondary);
+    margin-bottom: 12px;
+}
+
+.irs-paket-meta strong { font-size: 15px; }
+.irs-paket-meta-dot { width: 5px; height: 5px; border-radius: 50%; background: #c4cdd6; }
+
+.irs-paket-list { list-style: none; margin-bottom: 14px; padding: 0; }
+.irs-paket-list li { display: flex; align-items: center; gap: 10px; padding: 9px 2px; list-style: none; }
+.irs-paket-mk { flex: 1; font-size: 13.5px; color: var(--secondary); font-weight: 500; }
+
+.irs-sks-chip {
+    flex-shrink: 0;
+    background: #eaf2fa;
+    color: var(--primary-dark);
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.irs-note { display: flex; align-items: flex-start; gap: 9px; border-radius: 8px; padding: 11px 14px; font-size: 12.5px; line-height: 1.5; margin-bottom: 12px; }
+.irs-note i { margin-top: 2px; }
+.irs-note-warning { background: #fdf1e0; color: #935700; }
+.irs-note-info { background: #eaf2fa; color: #21618c; margin-top: 10px; margin-bottom: 0; }
+
+.irs-guide { display: flex; flex-wrap: wrap; gap: 8px 22px; padding: 13px 0; font-size: 12.5px; color: var(--gray-dark); }
+.irs-guide i { color: var(--primary); margin-right: 6px; }
+
+@media (max-width: 1024px) {
+    .irs-paket-card { position: static; }
+    .irs-toolbar { flex-direction: column; align-items: stretch; }
+}

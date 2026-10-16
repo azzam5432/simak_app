@@ -115,7 +115,7 @@ include __DIR__ . '/../../includes/header.php';
     <div class="table-header">
         <h3><i class="fas fa-file-signature"></i> Pengajuan IRS</h3>
         <?php if (!empty($grouped_irs)): ?>
-            <input type="text" id="irsSearch" placeholder="Cari nama atau NIM..." style="max-width: 260px;">
+            <input class="form-control" type="text" id="irsSearch" placeholder="Cari nama atau NIM..." style="max-width: 260px;">
         <?php endif; ?>
     </div>
 
@@ -153,7 +153,7 @@ include __DIR__ . '/../../includes/header.php';
                     </form>
                 </div>
 
-                <table>
+                <table class="table table-striped table-hover align-middle">
                     <thead>
                         <tr>
                             <th>Kode</th>
@@ -202,12 +202,12 @@ include __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="action" value="reject">
             <input type="hidden" name="irs_id" id="rejectIrsId">
             <div class="form-group">
-                <label>Mata Kuliah</label>
-                <input type="text" id="rejectInfo" value="" disabled>
+                <label class="form-label">Mata Kuliah</label>
+                <input class="form-control" type="text" id="rejectInfo" value="" disabled>
             </div>
             <div class="form-group">
-                <label>Catatan <span class="text-muted" style="font-weight: 400;">(opsional, diteruskan ke mahasiswa)</span></label>
-                <textarea name="catatan" id="rejectCatatan" placeholder="Contoh: Bentrok dengan jadwal kelas lain" rows="3"></textarea>
+                <label class="form-label">Catatan <span class="text-muted" style="font-weight: 400;">(opsional, diteruskan ke mahasiswa)</span></label>
+                <textarea class="form-control" name="catatan" id="rejectCatatan" placeholder="Contoh: Bentrok dengan jadwal kelas lain" rows="3"></textarea>
             </div>
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button type="button" class="btn btn-secondary" onclick="closeRejectModal()">Batal</button>

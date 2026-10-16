@@ -50,7 +50,7 @@ include __DIR__ . '/../../includes/header.php';
         <h3><i class="fas fa-list-ul"></i> Pilih Kelas</h3>
     </div>
     <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-        <select name="course_id" required style="padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px; min-width: 200px;">
+        <select class="form-select" name="course_id" required>
             <option value="">-- Pilih Mata Kuliah --</option>
             <?php foreach ($matakuliah as $mk): ?>
                 <option value="<?= $mk['id'] ?>" <?= $course_id == $mk['id'] ? 'selected' : '' ?>>
@@ -58,7 +58,7 @@ include __DIR__ . '/../../includes/header.php';
                 </option>
             <?php endforeach; ?>
         </select>
-        <input type="text" name="semester" value="<?= $semester ?>" placeholder="Semester (contoh: 1)" style="padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px;">
+        <input class="form-control" type="text" name="semester" value="<?= $semester ?>" placeholder="Semester (contoh: 1)">
         <button type="submit" class="btn btn-primary">Tampilkan</button>
     </form>
 </div>
@@ -79,7 +79,7 @@ include __DIR__ . '/../../includes/header.php';
         <input type="hidden" name="course_id" value="<?= $course_id ?>">
         <input type="hidden" name="semester" value="<?= $semester ?>">
         
-        <table>
+        <table class="table table-striped table-hover align-middle">
             <thead>
                 <tr>
                     <th>NIM</th>
@@ -103,21 +103,21 @@ include __DIR__ . '/../../includes/header.php';
                         <td><strong><?= htmlspecialchars($mn['nim']) ?></strong></td>
                         <td><?= htmlspecialchars($mn['mahasiswa_nama']) ?></td>
                         <td>
-                            <input type="number" name="nilai[<?= $mn['mahasiswa_id'] ?>][tugas]" 
+                            <input class="form-control" type="number" name="nilai[<?= $mn['mahasiswa_id'] ?>][tugas]" 
                                    value="<?= $tugas ?>" min="0" max="100" step="0.01"
-                                   style="width: 70px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;"
+                                   style="width: 70px;"
                                    onchange="hitungNilai(this)">
                         </td>
                         <td>
-                            <input type="number" name="nilai[<?= $mn['mahasiswa_id'] ?>][uts]" 
+                            <input class="form-control" type="number" name="nilai[<?= $mn['mahasiswa_id'] ?>][uts]" 
                                    value="<?= $uts ?>" min="0" max="100" step="0.01"
-                                   style="width: 70px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;"
+                                   style="width: 70px;"
                                    onchange="hitungNilai(this)">
                         </td>
                         <td>
-                            <input type="number" name="nilai[<?= $mn['mahasiswa_id'] ?>][uas]" 
+                            <input class="form-control" type="number" name="nilai[<?= $mn['mahasiswa_id'] ?>][uas]" 
                                    value="<?= $uas ?>" min="0" max="100" step="0.01"
-                                   style="width: 70px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;"
+                                   style="width: 70px;"
                                    onchange="hitungNilai(this)">
                         </td>
                         <td>
@@ -127,11 +127,11 @@ include __DIR__ . '/../../includes/header.php';
                         </td>
                         <td>
                             <?php if ($mn['status_verifikasi'] === 'verified'): ?>
-                                <span class="status-badge" style="background: #2ecc71; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                                <span style="color: #27ae60; font-weight: 600; font-size: 12px;">
                                     <i class="fas fa-check-circle"></i> Terverifikasi
                                 </span>
                             <?php else: ?>
-                                <span class="status-badge" style="background: #e74c3c; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                                <span style="color: #c0392b; font-weight: 600; font-size: 12px;">
                                     <i class="fas fa-undo"></i> Dikembalikan Admin
                                 </span>
                                 <?php if (!empty($mn['catatan'])): ?>

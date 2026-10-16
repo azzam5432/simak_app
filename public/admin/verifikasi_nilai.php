@@ -106,7 +106,7 @@ include __DIR__ . '/../../includes/header.php';
     <div class="table-header">
         <h3><i class="fas fa-clipboard-check"></i> Nilai 0 Menunggu Verifikasi</h3>
         <?php if (!empty($courses_with_draft)): ?>
-            <input type="text" id="verifSearch" placeholder="Cari mata kuliah atau dosen..." style="max-width: 280px;">
+            <input class="form-control" type="text" id="verifSearch" placeholder="Cari mata kuliah atau dosen..." style="max-width: 280px;">
         <?php endif; ?>
     </div>
 
@@ -153,7 +153,7 @@ include __DIR__ . '/../../includes/header.php';
                     <?php endif; ?>
                 </div>
 
-                <table>
+                <table class="table table-striped table-hover align-middle">
                     <thead>
                         <tr>
                             <th>NIM</th>
@@ -188,7 +188,7 @@ include __DIR__ . '/../../includes/header.php';
                                         <span class="text-muted" style="font-size: 12px;">Belum lengkap</span>
                                     <?php else: ?>
                                         <?php if (!empty($komponen_nol)): ?>
-                                            <span class="status-badge status-draft" style="font-size: 11px; padding: 3px 10px; margin-right: 6px;">
+                                            <span style="font-size: 11px; margin-right: 6px; color: #7f8c8d; font-weight: 600;">
                                                 Nilai 0: <?= htmlspecialchars(implode(', ', $komponen_nol)) ?>
                                             </span>
                                         <?php endif; ?>
@@ -226,12 +226,12 @@ include __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="action" value="reject">
             <input type="hidden" name="grade_id" id="rejectGradeId">
             <div class="form-group">
-                <label>Mahasiswa</label>
-                <input type="text" id="rejectGradeInfo" value="" disabled>
+                <label class="form-label">Mahasiswa</label>
+                <input class="form-control" type="text" id="rejectGradeInfo" value="" disabled>
             </div>
             <div class="form-group">
-                <label>Catatan <span class="text-muted" style="font-weight: 400;">(opsional, untuk dosen)</span></label>
-                <textarea name="catatan" id="rejectGradeCatatan" placeholder="Contoh: Nilai UAS mahasiswa ini perlu dicek ulang" rows="3"></textarea>
+                <label class="form-label">Catatan <span class="text-muted" style="font-weight: 400;">(opsional, untuk dosen)</span></label>
+                <textarea class="form-control" name="catatan" id="rejectGradeCatatan" placeholder="Contoh: Nilai UAS mahasiswa ini perlu dicek ulang" rows="3"></textarea>
             </div>
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button type="button" class="btn btn-secondary" onclick="closeRejectGradeModal()">Batal</button>

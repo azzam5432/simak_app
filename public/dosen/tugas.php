@@ -78,7 +78,7 @@ include __DIR__ . '/../../includes/header.php';
             Belum ada tugas yang dibuat
         </p>
     <?php else: ?>
-        <table>
+        <table class="table table-striped table-hover align-middle">
             <thead>
                 <tr>
                     <th>Judul</th>
@@ -101,7 +101,7 @@ include __DIR__ . '/../../includes/header.php';
                         <td><?= date('d-m-Y H:i', strtotime($t['deadline'])) ?></td>
                         <td><?= $t['jumlah_submit'] ?? 0 ?></td>
                         <td>
-                            <span class="status-badge" style="background: <?= $status_color ?>; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                            <span style="font-weight: 600; font-size: 12px;">
                                 <?= $status ?>
                             </span>
                         </td>
@@ -134,7 +134,7 @@ include __DIR__ . '/../../includes/header.php';
     <?php if (empty($detail_submissions)): ?>
         <p style="color: #7f8c8d; padding: 15px;">Belum ada submission</p>
     <?php else: ?>
-        <table>
+        <table class="table table-striped table-hover align-middle">
             <thead>
                 <tr>
                     <th>NIM</th>
@@ -150,7 +150,7 @@ include __DIR__ . '/../../includes/header.php';
                         <td><strong><?= htmlspecialchars($sub['nim']) ?></strong></td>
                         <td><?= htmlspecialchars($sub['mahasiswa_nama']) ?></td>
                         <td>
-                            <span class="status-badge" style="background: <?= $sub['status'] === 'submitted' ? '#2ecc71' : '#f39c12' ?>; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
+                            <span style="font-weight: 600; font-size: 12px;">
                                 <?= ucfirst($sub['status']) ?>
                             </span>
                         </td>
@@ -176,14 +176,14 @@ include __DIR__ . '/../../includes/header.php';
 
 <div id="modalTambah" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999;">
     <div class="modal-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
         <h3 style="margin-bottom: 20px;"><i class="fas fa-plus-circle"></i> Buat Tugas Baru</h3>
         <form method="POST">
             <input type="hidden" name="action" value="create">
             
             <div class="form-group">
-                <label>Mata Kuliah</label>
-                <select name="course_id" required>
+                <label class="form-label">Mata Kuliah</label>
+                <select class="form-select" name="course_id" required>
                     <option value="">-- Pilih --</option>
                     <?php foreach ($matakuliah as $mk): ?>
                         <option value="<?= $mk['id'] ?>">
@@ -193,20 +193,20 @@ include __DIR__ . '/../../includes/header.php';
                 </select>
             </div>
             <div class="form-group">
-                <label>Judul Tugas</label>
-                <input type="text" name="judul" required>
+                <label class="form-label">Judul Tugas</label>
+                <input class="form-control" type="text" name="judul" required>
             </div>
             <div class="form-group">
-                <label>Deskripsi</label>
-                <textarea name="deskripsi" rows="3"></textarea>
+                <label class="form-label">Deskripsi</label>
+                <textarea class="form-control" name="deskripsi" rows="3"></textarea>
             </div>
             <div class="form-group">
-                <label>Deadline</label>
-                <input type="datetime-local" name="deadline" required>
+                <label class="form-label">Deadline</label>
+                <input class="form-control" type="datetime-local" name="deadline" required>
             </div>
             <div class="form-group">
-                <label>Bobot Nilai (%)</label>
-                <input type="number" name="bobot_nilai" min="0" max="100" value="0">
+                <label class="form-label">Bobot Nilai (%)</label>
+                <input class="form-control" type="number" name="bobot_nilai" min="0" max="100" value="0">
             </div>
             
             <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -219,15 +219,15 @@ include __DIR__ . '/../../includes/header.php';
 
 <div id="modalNilai" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999;">
     <div class="modal-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; max-width: 400px; width: 90%;">
         <h3 style="margin-bottom: 15px;"><i class="fas fa-edit"></i> Beri Nilai</h3>
         <form method="POST">
             <input type="hidden" name="action" value="nilai_submission">
             <input type="hidden" name="submission_id" id="nilaiSubmissionId">
             <input type="hidden" name="task_id" id="nilaiTaskId">
             <div class="form-group">
-                <label>Nilai (0-100)</label>
-                <input type="number" name="nilai" min="0" max="100" step="0.01" required>
+                <label class="form-label">Nilai (0-100)</label>
+                <input class="form-control" type="number" name="nilai" min="0" max="100" step="0.01" required>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="submit" class="btn btn-primary">Simpan</button>

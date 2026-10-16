@@ -69,13 +69,13 @@ include __DIR__ . '/../../includes/header.php';
                     <input type="hidden" name="course_id" value="<?= $sesi_aktif['course_id'] ?>">
                     
                     <div class="form-group">
-                        <label>Masukkan Kode Presensi dari Dosen</label>
-                        <input type="text" name="kode" placeholder="Contoh: 123456" required 
+                        <label class="form-label">Masukkan Kode Presensi dari Dosen</label>
+                        <input class="form-control" type="text" name="kode" placeholder="Contoh: 123456" required 
                                style="font-size: 24px; text-align: center; letter-spacing: 8px; padding: 15px; font-weight: bold;"
                                maxlength="6" pattern="[0-9]{6}">
                     </div>
                     
-                    <button type="submit" class="btn btn-success btn-block" style="padding: 14px; font-size: 16px;">
+                    <button type="submit" class="btn btn-success w-100" style="padding: 14px; font-size: 16px;">
                         <i class="fas fa-check"></i> Konfirmasi Kehadiran
                     </button>
                 </form>

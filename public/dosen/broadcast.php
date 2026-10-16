@@ -59,13 +59,13 @@ include __DIR__ . '/../../includes/header.php';
                 <input type="hidden" name="action" value="send">
                 
                 <div class="form-group">
-                    <label>Judul Pengumuman</label>
-                    <input type="text" name="judul" required placeholder="Masukkan judul pengumuman">
+                    <label class="form-label">Judul Pengumuman</label>
+                    <input class="form-control" type="text" name="judul" required placeholder="Masukkan judul pengumuman">
                 </div>
                 
                 <div class="form-group">
-                    <label>Target</label>
-                    <select name="target_role" required>
+                    <label class="form-label">Target</label>
+                    <select class="form-select" name="target_role" required>
                         <option value="all">Semua Pengguna</option>
                         <option value="mahasiswa">Mahasiswa</option>
                         <option value="dosen">Dosen</option>
@@ -74,8 +74,8 @@ include __DIR__ . '/../../includes/header.php';
                 </div>
                 
                 <div class="form-group">
-                    <label>Prioritas</label>
-                    <select name="priority">
+                    <label class="form-label">Prioritas</label>
+                    <select class="form-select" name="priority">
                         <option value="low">Rendah</option>
                         <option value="medium" selected>Sedang</option>
                         <option value="high">Tinggi</option>
@@ -83,19 +83,19 @@ include __DIR__ . '/../../includes/header.php';
                 </div>
                 
                 <div class="form-group">
-                    <label>Pesan</label>
-                    <textarea name="pesan" rows="5" required placeholder="Tulis pesan pengumuman..."></textarea>
+                    <label class="form-label">Pesan</label>
+                    <textarea class="form-control" name="pesan" rows="5" required placeholder="Tulis pesan pengumuman..."></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
-                        <input type="checkbox" name="kirim_email" value="1" style="width: 16px; height: 16px;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                        <input class="form-check-input" type="checkbox" name="kirim_email" value="1" style="width: 16px; height: 16px;">
                         <i class="fas fa-envelope"></i> Kirim juga via email ke penerima
                         <small style="color: #7f8c8d;">(butuh waktu tergantung jumlah penerima)</small>
                     </label>
                 </div>
                 
-                <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-paper-plane"></i> Kirim Pengumuman</button>
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-paper-plane"></i> Kirim Pengumuman</button>
             </form>
         </div>
     </div>

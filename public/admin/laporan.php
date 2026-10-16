@@ -157,15 +157,8 @@ include __DIR__ . '/../../includes/header.php';
 ?>
 
 <style>
-.tabs-container {
-    display: flex;
-    gap: 5px;
-    border-bottom: 2px solid #e9ecef;
-    margin-bottom: 20px;
-    overflow-x: auto;
-}
-
-.tab-btn {
+/* === Tab: teks selalu kontras, tab aktif biru + teks putih === */
+.tabs-container .tab-btn {
     padding: 12px 25px;
     background: none;
     border: none;
@@ -182,51 +175,28 @@ include __DIR__ . '/../../includes/header.php';
     transition: all 0.3s;
 }
 
-.tab-btn:hover {
+.tabs-container .tab-btn:hover {
     color: #3498db;
     background: #f8f9fa;
 }
 
-.tab-btn.active {
+.tabs-container .tab-btn.active {
     color: #3498db;
+    background: #eaf2fa;
     border-bottom-color: #3498db;
 }
 
-.filter-bar {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    margin-bottom: 20px;
+/* === Tombol filter/PDF: warna eksplisit agar teks tidak pernah hilang === */
+.filter-bar .btn.btn-primary,
+.filter-bar .btn.btn-primary:hover,
+.filter-bar .btn.btn-primary:focus {
+    background-color: var(--primary);
+    color: #fff;
 }
 
-.filter-bar .form-group {
-    margin: 0;
-}
-
-.filter-bar select {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    width: 100%;
-    background: #fff;
-    font-size: 14px;
-}
-
-.section-title {
-    margin: 18px 0 10px;
-    font-size: 15px;
-    color: var(--secondary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.section-title i {
-    color: var(--primary);
+.filter-bar .btn.btn-primary:hover,
+.filter-bar .btn.btn-primary:focus {
+    background-color: var(--primary-dark);
 }
 </style>
 
@@ -284,8 +254,8 @@ include __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="tab" value="nilai">
 
             <div class="form-group" style="min-width: 220px; flex: 1;">
-                <label style="font-size: 13px;">Mata Kuliah</label>
-                <select name="course_id">
+                <label class="form-label" style="font-size: 13px;">Mata Kuliah</label>
+                <select class="form-select" name="course_id">
                     <option value="">-- Semua Mata Kuliah --</option>
                     <?php foreach ($matakuliah as $mk): ?>
                         <option value="<?= $mk['id'] ?>" <?= $course_id == $mk['id'] ? 'selected' : '' ?>>
@@ -296,8 +266,8 @@ include __DIR__ . '/../../includes/header.php';
             </div>
 
             <div class="form-group" style="min-width: 130px;">
-                <label style="font-size: 13px;">Semester</label>
-                <select name="semester">
+                <label class="form-label" style="font-size: 13px;">Semester</label>
+                <select class="form-select" name="semester">
                     <option value="">-- Semua --</option>
                     <?php foreach ($semesters as $s): ?>
                         <option value="<?= $s['semester'] ?>" <?= $semester == $s['semester'] ? 'selected' : '' ?>>
@@ -312,7 +282,7 @@ include __DIR__ . '/../../includes/header.php';
                     <i class="fas fa-search"></i> Filter
                 </button>
                 <a href="/simak_app/public/admin/cetak_pdf.php?type=nilai&course_id=<?= urlencode($course_id ?? '') ?>&semester=<?= urlencode($semester ?? '') ?>" target="_blank"
-                    class="btn btn-outline btn-sm">
+                    class="btn btn-outline-danger btn-sm">
                     <i class="fas fa-file-pdf"></i> PDF
                 </a>
             </div>
@@ -322,7 +292,7 @@ include __DIR__ . '/../../includes/header.php';
         <?php if (!empty($statistik)): ?>
             <h4 class="section-title"><i class="fas fa-chart-bar"></i> Statistik per Mata Kuliah</h4>
             <div style="overflow-x: auto; margin-bottom: 20px;">
-                <table>
+                <table class="table table-striped table-hover align-middle">
                     <thead>
                         <tr>
                             <th>Kode MK</th>
@@ -369,7 +339,7 @@ include __DIR__ . '/../../includes/header.php';
             </div>
         <?php else: ?>
             <div style="overflow-x: auto;">
-                <table>
+                <table class="table table-striped table-hover align-middle">
                     <thead>
                         <tr>
                             <th>NIM</th>
@@ -420,8 +390,8 @@ include __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="tab" value="rekap_nilai">
 
             <div class="form-group" style="min-width: 260px; flex: 1;">
-                <label style="font-size: 13px;">Mahasiswa</label>
-                <select name="mahasiswa_id">
+                <label class="form-label" style="font-size: 13px;">Mahasiswa</label>
+                <select class="form-select" name="mahasiswa_id">
                     <option value="">-- Pilih Mahasiswa --</option>
                     <?php foreach ($mahasiswa_list as $m): ?>
                         <option value="<?= $m['id'] ?>" <?= $mahasiswa_id == $m['id'] ? 'selected' : '' ?>>
@@ -432,8 +402,8 @@ include __DIR__ . '/../../includes/header.php';
             </div>
 
             <div class="form-group" style="min-width: 130px;">
-                <label style="font-size: 13px;">Semester</label>
-                <select name="semester">
+                <label class="form-label" style="font-size: 13px;">Semester</label>
+                <select class="form-select" name="semester">
                     <option value="">-- Semua Semester (IPK) --</option>
                     <?php foreach ($semester_options as $s): ?>
                         <option value="<?= $s['semester'] ?>" <?= $semester == $s['semester'] ? 'selected' : '' ?>>
@@ -448,8 +418,7 @@ include __DIR__ . '/../../includes/header.php';
                     <i class="fas fa-search"></i> Tampilkan
                 </button>
                 <?php if ($mahasiswa_id && !empty($data)): ?>
-                    <a href="/simak_app/public/admin/cetak_pdf.php?type=rekap_nilai&mahasiswa_id=<?= urlencode($mahasiswa_id) ?>&semester=<?= urlencode($semester ?? '') ?>" target="_blank"
-                        class="btn btn-outline btn-sm">
+                    <a href="/simak_app/public/admin/cetak_pdf.php?type=rekap_nilai&mahasiswa_id=<?= urlencode($mahasiswa_id) ?>&semester=<?= urlencode($semester ?? '') ?>" target="_blank" class="btn btn-outline-danger btn-sm">
                         <i class="fas fa-file-pdf"></i> PDF
                     </a>
                 <?php endif; ?>
@@ -502,7 +471,7 @@ include __DIR__ . '/../../includes/header.php';
             <?php if (!$semester): ?>
                 <h4 class="section-title"><i class="fas fa-chart-bar"></i> IPS per Semester</h4>
                 <div style="overflow-x: auto; margin-bottom: 20px;">
-                    <table>
+                    <table class="table table-striped table-hover align-middle">
                         <thead>
                             <tr>
                                 <th>Semester</th>
@@ -543,7 +512,7 @@ include __DIR__ . '/../../includes/header.php';
             <!-- Detail nilai -->
             <h4 class="section-title"><i class="fas fa-list"></i> Detail Nilai <span class="text-muted" style="font-weight: 400;">(<?= $semester ? 'Semester ' . htmlspecialchars($semester) : 'Semua Semester' ?>)</span></h4>
             <div style="overflow-x: auto;">
-                <table>
+                <table class="table table-striped table-hover align-middle">
                     <thead>
                         <tr>
                             <th>Smt</th>
@@ -605,8 +574,8 @@ include __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="tab" value="irs">
 
             <div class="form-group" style="min-width: 130px;">
-                <label style="font-size: 13px;">Semester</label>
-                <select name="semester">
+                <label class="form-label" style="font-size: 13px;">Semester</label>
+                <select class="form-select" name="semester">
                     <option value="">-- Semua --</option>
                     <?php foreach ($semesters as $s): ?>
                         <option value="<?= $s['semester'] ?>" <?= $semester == $s['semester'] ? 'selected' : '' ?>>
@@ -617,8 +586,8 @@ include __DIR__ . '/../../includes/header.php';
             </div>
 
             <div class="form-group" style="min-width: 150px;">
-                <label style="font-size: 13px;">Status</label>
-                <select name="status">
+                <label class="form-label" style="font-size: 13px;">Status</label>
+                <select class="form-select" name="status">
                     <option value="">-- Semua --</option>
                     <option value="pending" <?= $status === 'pending' ? 'selected' : '' ?>>Menunggu</option>
                     <option value="approved" <?= $status === 'approved' ? 'selected' : '' ?>>Disetujui</option>
@@ -626,12 +595,12 @@ include __DIR__ . '/../../includes/header.php';
                 </select>
             </div>
 
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 8px; margin-left: auto;">
                 <button type="submit" class="btn btn-primary btn-sm">
-                    <i class="fas fa-search"></i> Filter
+                    <i class="fas fa-search"></i> Tampilkan
                 </button>
                 <a href="/simak_app/public/admin/cetak_pdf.php?type=irs&semester=<?= urlencode($semester ?? '') ?>&status=<?= urlencode($status ?? '') ?>" target="_blank"
-                    class="btn btn-outline btn-sm">
+                    class="btn btn-outline-danger btn-sm">
                     <i class="fas fa-file-pdf"></i> PDF
                 </a>
             </div>
@@ -641,7 +610,7 @@ include __DIR__ . '/../../includes/header.php';
         <?php if (!empty($rekap_irs)): ?>
             <h4 class="section-title"><i class="fas fa-users"></i> Rekap IRS per Mahasiswa</h4>
             <div style="overflow-x: auto; margin-bottom: 20px;">
-                <table>
+                <table class="table table-striped table-hover align-middle">
                     <thead>
                         <tr>
                             <th>NIM</th>
@@ -682,7 +651,7 @@ include __DIR__ . '/../../includes/header.php';
             </div>
         <?php else: ?>
             <div style="overflow-x: auto;">
-                <table>
+                <table class="table table-striped table-hover align-middle">
                     <thead>
                         <tr>
                             <th>NIM</th>
@@ -723,8 +692,8 @@ include __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="tab" value="presensi">
 
             <div class="form-group" style="min-width: 220px; flex: 1;">
-                <label style="font-size: 13px;">Mata Kuliah</label>
-                <select name="course_id">
+                <label class="form-label" style="font-size: 13px;">Mata Kuliah</label>
+                <select class="form-select" name="course_id">
                     <option value="">-- Semua Mata Kuliah --</option>
                     <?php foreach ($matakuliah as $mk): ?>
                         <option value="<?= $mk['id'] ?>" <?= $course_id == $mk['id'] ? 'selected' : '' ?>>
@@ -738,8 +707,7 @@ include __DIR__ . '/../../includes/header.php';
                 <button type="submit" class="btn btn-primary btn-sm">
                     <i class="fas fa-search"></i> Filter
                 </button>
-                <a href="/simak_app/public/admin/cetak_pdf.php?type=presensi&course_id=<?= urlencode($course_id ?? '') ?>" target="_blank"
-                    class="btn btn-outline btn-sm">
+                <a href="/simak_app/public/admin/cetak_pdf.php?type=presensi&course_id=<?= urlencode($course_id ?? '') ?>" target="_blank" class="btn btn-outline-danger btn-sm">
                     <i class="fas fa-file-pdf"></i> PDF
                 </a>
             </div>
@@ -749,7 +717,7 @@ include __DIR__ . '/../../includes/header.php';
         <?php if (!empty($statistik)): ?>
             <h4 class="section-title"><i class="fas fa-chart-bar"></i> Statistik Presensi per Mata Kuliah</h4>
             <div style="overflow-x: auto; margin-bottom: 20px;">
-                <table>
+                <table class="table table-striped table-hover align-middle">
                     <thead>
                         <tr>
                             <th>Kode MK</th>
@@ -796,7 +764,7 @@ include __DIR__ . '/../../includes/header.php';
             </div>
         <?php else: ?>
             <div style="overflow-x: auto;">
-                <table>
+                <table class="table table-striped table-hover align-middle">
                     <thead>
                         <tr>
                             <th>Kode MK</th>
@@ -845,8 +813,8 @@ include __DIR__ . '/../../includes/header.php';
             <input type="hidden" name="tab" value="mahasiswa">
 
             <div class="form-group" style="min-width: 220px; flex: 1;">
-                <label style="font-size: 13px;">Jurusan</label>
-                <select name="jurusan_id">
+                <label class="form-label" style="font-size: 13px;">Jurusan</label>
+                <select class="form-select" name="jurusan_id">
                     <option value="">-- Semua Jurusan --</option>
                     <?php foreach ($prodi_list as $p): ?>
                         <option value="<?= $p['jurusan_id'] ?>" <?= $jurusan_id == $p['jurusan_id'] ? 'selected' : '' ?>>
@@ -859,9 +827,7 @@ include __DIR__ . '/../../includes/header.php';
             <div style="display: flex; gap: 8px;">
                 <button type="submit" class="btn btn-primary btn-sm">
                     <i class="fas fa-search"></i> Filter
-                </button>
-                <a href="/simak_app/public/admin/cetak_pdf.php?type=mahasiswa&jurusan_id=<?= urlencode($jurusan_id ?? '') ?>" target="_blank"
-                class="btn btn-outline btn-sm">
+                </button>                <a href="/simak_app/public/admin/cetak_pdf.php?type=mahasiswa&jurusan_id=<?= urlencode($jurusan_id ?? '') ?>" target="_blank" class="btn btn-outline-danger btn-sm">
                     <i class="fas fa-file-pdf"></i> PDF
                 </a>
             </div>
@@ -877,7 +843,7 @@ include __DIR__ . '/../../includes/header.php';
             </div>
         <?php else: ?>
             <div style="overflow-x: auto;">
-                <table>
+                <table class="table table-striped table-hover align-middle">
                     <thead>
                         <tr>
                             <th>NIM</th>

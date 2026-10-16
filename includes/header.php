@@ -16,6 +16,24 @@ $current_page = basename($_SERVER['PHP_SELF']);
 $role = $_SESSION['role'];
 $nama = $_SESSION['nama'];
 $initial = strtoupper(substr($nama, 0, 1));
+
+// CSS per halaman: base.css selalu dimuat, file tambahan sesuai halamannya
+// supaya perubahan style satu halaman tidak menabrak halaman lain
+$css_v = 1;
+$page_css_map = [
+    'dashboard.php'       => ['dashboard.css'],
+    'profil.php'          => ['profil.css'],
+    'jadwal.php'          => ['jadwal.css'],
+    'irs.php'             => ['irs.css'],
+    'validasi_irs.php'    => ['irs.css'],
+    'verifikasi_nilai.php'=> ['irs.css'],
+    'laporan.php'         => ['laporan.css'],
+    'report_krs.php'      => ['report.css'],
+    'report_nilai.php'    => ['report.css'],
+    'khs.php'             => ['report.css'],
+    'laporan_nilai.php'   => ['report.css'],
+];
+$page_extra_css = $page_css_map[$current_page] ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -23,8 +41,12 @@ $initial = strtoupper(substr($nama, 0, 1));
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SIMAK - <?= ucfirst($role) ?> Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="/simak_app/public/assets/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="/simak_app/public/assets/css/style.css?v=4">
+    <link rel="stylesheet" href="/simak_app/public/assets/css/base.css?v=<?= $css_v ?>">
+    <?php foreach ($page_extra_css as $extra_css): ?>
+    <link rel="stylesheet" href="/simak_app/public/assets/css/<?= $extra_css ?>?v=<?= $css_v ?>">
+    <?php endforeach; ?>
     <link rel="icon" href="/simak_app/public/assets/favicon.ico" type="image/x-icon">
 </head>
 <body>
@@ -220,6 +242,11 @@ $initial = strtoupper(substr($nama, 0, 1));
             
             <li class="menu-label">Akun</li>
             <li>
+                <a href="/simak_app/public/profil.php" class="<?= $current_page === 'profil.php' ? 'active' : '' ?>">
+                    <i class="fas fa-user-circle"></i> Profil Saya
+                </a>
+            </li>
+            <li>
                 <a href="/simak_app/public/logout.php">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
@@ -236,15 +263,29 @@ $initial = strtoupper(substr($nama, 0, 1));
             <div class="user-info">
                 <span class="user-badge"><i class="fas fa-user-circle"></i> <?= ucfirst($role) ?></span>
                 <span class="user-name"><?= htmlspecialchars($nama) ?></span>
-                <div class="user-avatar"><?= $initial ?></div>
+                <?php 
+                // Cek foto profil
+                $foto_profil = $_SESSION['foto_profil'] ?? null;
+                $foto_path = __DIR__ . '/../public/uploads/avatars/' . $foto_profil;
+                ?>
+                <div class="user-avatar">
+                    <?php if ($foto_profil && file_exists($foto_path)): ?>
+                        <img src="/simak_app/public/uploads/avatars/<?= htmlspecialchars($foto_profil) ?>?t=<?= time() ?>" 
+                            alt="Avatar" 
+                            style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                    <?php else: ?>
+                        <?= $initial ?>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
-
+        
         <?php 
         $flash = getFlashMessage(); 
         if ($flash): 
+        $flash_type = $flash['type'] === 'error' ? 'danger' : $flash['type'];
         ?>
-            <div class="alert alert-<?= $flash['type'] ?>">
+            <div class="alert alert-<?= $flash_type ?>">
                 <span class="alert-icon">
                     <?php 
                     if ($flash['type'] === 'success') {

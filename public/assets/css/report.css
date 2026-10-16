@@ -1,0 +1,12 @@
+/* ============================================
+   REPORT — report KRS, report nilai, KHS,
+   dan laporan nilai dosen (bagian cetak)
+   ============================================ */
+
+.krs-title { font-weight: 700; color: var(--secondary); }
+.krs-sem-btn { min-width: 34px; }
+.krs-semester-picker { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.lbl { font-size: 13px; color: var(--gray-dark); }
+
+/* Bagian tanda tangan untuk dokumen cetak (KRS/IRS) */
+.signature-section, .signature { text-align: center; font-size: 13px; }

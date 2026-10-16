@@ -61,16 +61,16 @@ include __DIR__ . '/../../includes/header.php';
 <div class="table-container">
     <div class="table-header">
         <h3><i class="fas fa-chalkboard-teacher"></i> Data Dosen</h3>
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <input type="text" id="tableSearch" placeholder="Cari NID, nama, jurusan..." style="min-width: 220px;">
-            <button class="btn btn-primary" onclick="openModal('modalTambah')">
+        <div class="table-actions">
+            <input class="form-control" type="text" id="tableSearch" placeholder="Cari NID, nama, jurusan..." style="min-width: 220px;">
+            <button class="btn btn-success" onclick="openModal('modalTambah')">
                 <i class="fas fa-plus"></i> Tambah
             </button>
         </div>
     </div>
 
     <div style="overflow-x: auto;">
-        <table>
+        <table class="table table-striped table-hover align-middle">
             <thead>
                 <tr>
                     <th>NID</th>
@@ -100,7 +100,7 @@ include __DIR__ . '/../../includes/header.php';
                         <td class="td-actions">
                             <span class="row-actions">
                                 <button class="btn btn-sm btn-icon btn-icon-light" title="Edit" onclick="editDosen(<?= $d['dosen_id'] ?>)">
-                                    <i class="fas fa-edit"></i>
+                                    <i class="fas fa-edit"></i> Edit
                                 </button>
                                 <button class="btn btn-sm btn-icon btn-icon-danger-light" title="Hapus" onclick="deleteDosen(<?= $d['dosen_id'] ?>)">
                                     <i class="fas fa-trash"></i>
@@ -131,7 +131,7 @@ include __DIR__ . '/../../includes/header.php';
 <!-- ============================================ -->
 <div id="modalTambah" class="modal">
     <div class="modal-overlay" onclick="closeModal('modalTambah')"></div>
-    <div class="modal-content">
+    <div class="modal-content modal-lg">
         <div class="modal-header">
             <h3><i class="fas fa-user-plus"></i> Tambah Dosen</h3>
             <button type="button" class="modal-close" onclick="closeModal('modalTambah')">&times;</button>
@@ -142,38 +142,38 @@ include __DIR__ . '/../../includes/header.php';
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>NID <span class="required">*</span></label>
-                    <input type="text" name="nid" required placeholder="Contoh: 1234567890"
+                    <label class="form-label">NID <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="nid" required placeholder="Contoh: 1234567890"
                            pattern="[0-9]+" title="Hanya angka"
                            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     <small class="help-text">Hanya boleh angka</small>
                 </div>
                 <div class="form-group">
-                    <label>Username <span class="required">*</span></label>
-                    <input type="text" name="username" required placeholder="Username untuk login">
+                    <label class="form-label">Username <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="username" required placeholder="Username untuk login">
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Nama Lengkap <span class="required">*</span></label>
-                <input type="text" name="nama" required placeholder="Contoh: Dr. Ahmad Santoso, M.Kom">
+                <label class="form-label">Nama Lengkap <span class="required">*</span></label>
+                <input class="form-control" type="text" name="nama" required placeholder="Contoh: Dr. Ahmad Santoso, M.Kom">
             </div>
 
             <div class="form-group">
-                <label>Email <span class="required">*</span></label>
-                <input type="email" name="email" required placeholder="email@domain.com">
+                <label class="form-label">Email <span class="required">*</span></label>
+                <input class="form-control" type="email" name="email" required placeholder="email@domain.com">
             </div>
 
             <div class="form-group">
-                <label>Password <span class="required">*</span></label>
-                <input type="text" name="password" value="password123" required>
+                <label class="form-label">Password <span class="required">*</span></label>
+                <input class="form-control" type="text" name="password" value="password123" required>
                 <small class="help-text">Default: password123</small>
             </div>
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Fakultas <span class="required">*</span></label>
-                    <select name="fakultas_id" id="tambah_fakultas" required onchange="loadJurusan('tambah', this.value)">
+                    <label class="form-label">Fakultas <span class="required">*</span></label>
+                    <select class="form-select" name="fakultas_id" id="tambah_fakultas" required onchange="loadJurusan('tambah', this.value)">
                         <option value="">-- Pilih Fakultas --</option>
                         <?php foreach ($fakultas_list as $f): ?>
                             <option value="<?= $f['id'] ?>">
@@ -184,16 +184,16 @@ include __DIR__ . '/../../includes/header.php';
                 </div>
 
                 <div class="form-group">
-                    <label>Jurusan <span class="required">*</span></label>
-                    <select name="jurusan_id" id="tambah_jurusan" required>
+                    <label class="form-label">Jurusan <span class="required">*</span></label>
+                    <select class="form-select" name="jurusan_id" id="tambah_jurusan" required>
                         <option value="">-- Pilih Fakultas Dulu --</option>
                     </select>
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalTambah')">Batal</button>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Simpan</button>
             </div>
         </form>
     </div>
@@ -204,7 +204,7 @@ include __DIR__ . '/../../includes/header.php';
 <!-- ============================================ -->
 <div id="modalEdit" class="modal">
     <div class="modal-overlay" onclick="closeModal('modalEdit')"></div>
-    <div class="modal-content">
+    <div class="modal-content modal-lg">
         <div class="modal-header">
             <h3><i class="fas fa-user-edit"></i> Edit Dosen</h3>
             <button type="button" class="modal-close" onclick="closeModal('modalEdit')">&times;</button>
@@ -216,31 +216,31 @@ include __DIR__ . '/../../includes/header.php';
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>NID <span class="required">*</span></label>
-                    <input type="text" name="nid" id="edit_nid" required
+                    <label class="form-label">NID <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="nid" id="edit_nid" required
                            pattern="[0-9]+" title="Hanya angka"
                            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                 </div>
                 <div class="form-group">
-                    <label>Nama Lengkap <span class="required">*</span></label>
-                    <input type="text" name="nama" id="edit_nama" required>
+                    <label class="form-label">Nama Lengkap <span class="required">*</span></label>
+                    <input class="form-control" type="text" name="nama" id="edit_nama" required>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Email <span class="required">*</span></label>
-                <input type="email" name="email" id="edit_email" required>
+                <label class="form-label">Email <span class="required">*</span></label>
+                <input class="form-control" type="email" name="email" id="edit_email" required>
             </div>
 
             <div class="form-group">
-                <label>Password (kosongkan jika tidak diubah)</label>
-                <input type="text" name="password" placeholder="Kosongkan jika tidak diubah">
+                <label class="form-label">Password (kosongkan jika tidak diubah)</label>
+                <input class="form-control" type="text" name="password" placeholder="Kosongkan jika tidak diubah">
             </div>
 
             <div class="row row-2" style="gap: 15px;">
                 <div class="form-group">
-                    <label>Fakultas <span class="required">*</span></label>
-                    <select name="fakultas_id" id="edit_fakultas" required onchange="loadJurusan('edit', this.value)">
+                    <label class="form-label">Fakultas <span class="required">*</span></label>
+                    <select class="form-select" name="fakultas_id" id="edit_fakultas" required onchange="loadJurusan('edit', this.value)">
                         <option value="">-- Pilih Fakultas --</option>
                         <?php foreach ($fakultas_list as $f): ?>
                             <option value="<?= $f['id'] ?>">
@@ -251,14 +251,14 @@ include __DIR__ . '/../../includes/header.php';
                 </div>
 
                 <div class="form-group">
-                    <label>Jurusan <span class="required">*</span></label>
-                    <select name="jurusan_id" id="edit_jurusan" required>
+                    <label class="form-label">Jurusan <span class="required">*</span></label>
+                    <select class="form-select" name="jurusan_id" id="edit_jurusan" required>
                         <option value="">-- Pilih Jurusan --</option>
                     </select>
                 </div>
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('modalEdit')">Batal</button>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update</button>
             </div>
