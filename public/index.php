@@ -1,5 +1,8 @@
 <?php
 require_once __DIR__ . '/../config/session.php';
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 if (isLoggedIn()) {
     $role = $_SESSION['role'];
@@ -16,6 +19,7 @@ if (isLoggedIn()) {
 $error = $_GET['error'] ?? '';
 $errors = [
     'login_failed' => 'Username atau password salah!',
+    'server_error' => 'Terjadi kesalahan pada server. Silakan coba lagi atau hubungi administrator.',
     'session_expired' => 'Sesi Anda telah berakhir. Silakan login kembali.',
     'access_denied' => 'Akses ditolak. Silakan login dengan akun yang valid.'
 ];

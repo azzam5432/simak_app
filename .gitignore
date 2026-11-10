@@ -1,10 +1,75 @@
-# Kredensial lokal - JANGAN di-commit
-.env
+# ============================================================
+# GITIGNORE — SIMAK (sistem informasi akademik)
+# Aturan utama: file rahasia, data pengguna, log, dan file
+# debug TIDAK BOLEH LOLOS sama sekali ke repositori publik.
+# ============================================================
 
-# Log runtime (berisi alamat email pengguna)
+# ---------- SEKRET & KREDENSIAL (prioritas tertinggi) ----------
+# Semua varian .env berisi kredensial DB, SMTP, dsb — blokir semuanya.
+.env
+.env.*
+.*.env
+*.env
+# Kecuali template yang sengaja dibuat tanpa nilai rahasia:
+!.env.example
+
+# ---------- DATA PENGGUNA (upload) ----------
+# Foto profil pengguna adalah data pribadi, jangan pernah di-commit.
+public/uploads/
+public/uploads/avatars/
+public/uploads/avatars/*
+!public/uploads/avatars/.gitkeep
+!public/uploads/avatars/.gitignore
+
+# ---------- LOG RUNTIME ----------
+# Log email & PDF berisi alamat email/aktivitas pengguna.
 logs/
 *.log
 
-# File temporary testing
-test_output_tmp.xlsx
+# ---------- DATABASE ----------
+# Dump/manipulasi DB bisa berisi data asli mahasiswa & hash password.
+*.sql
+*.sql.gz
+*.db
+*.sqlite
+*.sqlite3
+
+# ---------- FILE DEBUG / TESTING (jangan sampai terekspos) ----------
+test_email.php
 test_xlsx_tmp.php
+test_output_tmp.xlsx
+public/test.php
+public/mahasiswa/debug.php
+logs/css_audit.php
+*.tmp
+*.bak
+*.old
+*.swp
+*~
+
+# ---------- DOKUMEN INTERNAL ----------
+# Catatan audit keamanan bisa membocorkan celah kalau terlihat publik.
+# Hilangkan 2 baris di bawah ini jika memang ingin ini ikut di-commit.
+SECURITY_AUDIT.md
+FILES_NOT_TO_COMMIT.md
+
+# ---------- LINGKUNGAN ALAT LOKAL ----------
+.freebuff/
+.gitignore.bak
+vendor/
+node_modules/
+composer.lock
+package-lock.json
+
+# ---------- FILE SISTEM OPERASI & EDITOR ----------
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.code-workspace
+
+# ---------- PDF & EKSPOR HASIL GENERATE ----------
+# Semua PDF di-stream ke browser, tapi jika ada hasil simpanan uji:
+*.pdf
+!docs/*.pdf

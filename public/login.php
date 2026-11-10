@@ -51,7 +51,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } catch (PDOException $e) {
         error_log("Login error: " . $e->getMessage());
-        header("Location: /simak_app/public/index.php?error=login_failed");
+        // Error ini masalah sistem (koneksi/query), bukan kredensial salah.
+        // Jangan tampilkan "username/password salah" untuk membingungkan user.
+        header("Location: /simak_app/public/index.php?error=server_error");
         exit();
     }
 } else {
