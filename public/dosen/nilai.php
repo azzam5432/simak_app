@@ -18,10 +18,19 @@ if (!$dosen) {
 
 $controller = new DosenController($pdo, $dosen['id']);
 
-$course_id = $_GET['course_id'] ?? 0;
-$semester = $_GET['semester'] ?? date('Y') . '1'; // Format: 20241
+$course_id = intval($_GET['course_id'] ?? 0);
 
 $matakuliah = $controller->getMatakuliahDosen();
+
+// Semester mengikuti mata kuliah yang dipilih (ditampilkan di dropdown)
+$selected_mk = null;
+foreach ($matakuliah as $mk) {
+    if (intval($mk['id']) === $course_id) {
+        $selected_mk = $mk;
+        break;
+    }
+}
+$semester = $selected_mk['semester'] ?? null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_nilai') {
     $data = [
@@ -45,20 +54,19 @@ if ($course_id) {
 include __DIR__ . '/../../includes/header.php';
 ?>
 
-<div class="table-container" style="margin-bottom: 20px;">
+<div class="table-container">
     <div class="table-header">
         <h3><i class="fas fa-list-ul"></i> Pilih Kelas</h3>
     </div>
-    <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+    <form method="GET" class="d-flex flex-wrap gap-2 align-items-center">
         <select class="form-select" name="course_id" required>
             <option value="">-- Pilih Mata Kuliah --</option>
             <?php foreach ($matakuliah as $mk): ?>
                 <option value="<?= $mk['id'] ?>" <?= $course_id == $mk['id'] ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($mk['kode_mk']) ?> - <?= htmlspecialchars($mk['nama_mk']) ?>
+                    <?= htmlspecialchars($mk['kode_mk']) ?> - <?= htmlspecialchars($mk['nama_mk']) ?> (Semester <?= htmlspecialchars($mk['semester']) ?>)
                 </option>
             <?php endforeach; ?>
         </select>
-        <input class="form-control" type="text" name="semester" value="<?= $semester ?>" placeholder="Semester (contoh: 1)">
         <button type="submit" class="btn btn-primary">Tampilkan</button>
     </form>
 </div>
@@ -67,11 +75,8 @@ include __DIR__ . '/../../includes/header.php';
 
 <div class="table-container">
     <div class="table-header">
-        <h3><i class="fas fa-edit"></i> Input Nilai - <?= htmlspecialchars($matakuliah[0]['nama_mk'] ?? '') ?></h3>
-        <div>
-            <span style="color: #7f8c8d;">Semester: <?= $semester ?></span>
-            <span style="color: #7f8c8d; margin-left: 15px;">Total: <?= count($mahasiswa_nilai) ?> mahasiswa</span>
-        </div>
+        <h3><i class="fas fa-edit"></i> Input Nilai - <?= htmlspecialchars($selected_mk['nama_mk'] ?? '') ?></h3>
+        <span class="text-muted small">Semester: <?= $semester ?> &middot; <?= count($mahasiswa_nilai) ?> mahasiswa</span>
     </div>
     
     <form method="POST">
@@ -103,21 +108,18 @@ include __DIR__ . '/../../includes/header.php';
                         <td><strong><?= htmlspecialchars($mn['nim']) ?></strong></td>
                         <td><?= htmlspecialchars($mn['mahasiswa_nama']) ?></td>
                         <td>
-                            <input class="form-control" type="number" name="nilai[<?= $mn['mahasiswa_id'] ?>][tugas]" 
+                            <input class="form-control input-nilai" type="number" name="nilai[<?= $mn['mahasiswa_id'] ?>][tugas]" 
                                    value="<?= $tugas ?>" min="0" max="100" step="0.01"
-                                   style="width: 70px;"
                                    onchange="hitungNilai(this)">
                         </td>
                         <td>
-                            <input class="form-control" type="number" name="nilai[<?= $mn['mahasiswa_id'] ?>][uts]" 
+                            <input class="form-control input-nilai" type="number" name="nilai[<?= $mn['mahasiswa_id'] ?>][uts]" 
                                    value="<?= $uts ?>" min="0" max="100" step="0.01"
-                                   style="width: 70px;"
                                    onchange="hitungNilai(this)">
                         </td>
                         <td>
-                            <input class="form-control" type="number" name="nilai[<?= $mn['mahasiswa_id'] ?>][uas]" 
+                            <input class="form-control input-nilai" type="number" name="nilai[<?= $mn['mahasiswa_id'] ?>][uas]" 
                                    value="<?= $uas ?>" min="0" max="100" step="0.01"
-                                   style="width: 70px;"
                                    onchange="hitungNilai(this)">
                         </td>
                         <td>
@@ -127,17 +129,11 @@ include __DIR__ . '/../../includes/header.php';
                         </td>
                         <td>
                             <?php if ($mn['status_verifikasi'] === 'verified'): ?>
-                                <span style="color: #27ae60; font-weight: 600; font-size: 12px;">
-                                    <i class="fas fa-check-circle"></i> Terverifikasi
-                                </span>
+                                <span class="status-badge status-verified">Terverifikasi</span>
                             <?php else: ?>
-                                <span style="color: #c0392b; font-weight: 600; font-size: 12px;">
-                                    <i class="fas fa-undo"></i> Dikembalikan Admin
-                                </span>
+                                <span class="status-badge status-rejected">Dikembalikan Admin</span>
                                 <?php if (!empty($mn['catatan'])): ?>
-                                    <div style="font-size: 12px; color: #c0392b; margin-top: 4px; max-width: 200px;">
-                                        <i class="fas fa-comment-dots"></i> <?= htmlspecialchars($mn['catatan']) ?>
-                                    </div>
+                                    <span class="cell-sub"><i class="fas fa-comment-dots"></i> <?= htmlspecialchars($mn['catatan']) ?></span>
                                 <?php endif; ?>
                             <?php endif; ?>
                         </td>
@@ -146,9 +142,9 @@ include __DIR__ . '/../../includes/header.php';
             </tbody>
         </table>
         
-        <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <div class="mt-3 d-flex flex-wrap gap-2 align-items-center">
             <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan Nilai</button>
-            <small style="color: #7f8c8d; align-self: center;">
+            <small class="text-muted">
                 * Nilai langsung terverifikasi otomatis setelah disimpan. Jika menginput nilai 0 (tugas/UTS/UAS), nilai tersebut perlu diverifikasi Admin terlebih dahulu.
             </small>
         </div>
@@ -157,15 +153,19 @@ include __DIR__ . '/../../includes/header.php';
 
 <?php elseif ($course_id): ?>
     <div class="table-container">
-        <p style="text-align: center; color: #7f8c8d; padding: 30px;">
-            Belum ada mahasiswa yang terdaftar di kelas ini untuk semester <?= $semester ?>.
-        </p>
+        <div class="empty-state">
+            <i class="fas fa-users"></i>
+            <h3>Belum ada mahasiswa</h3>
+            <p>Tidak ada mahasiswa terdaftar di kelas ini untuk semester <?= htmlspecialchars($semester ?? '-') ?>.</p>
+        </div>
     </div>
 <?php else: ?>
     <div class="table-container">
-        <p style="text-align: center; color: #7f8c8d; padding: 30px;">
-            Silakan pilih kelas dan semester terlebih dahulu.
-        </p>
+        <div class="empty-state">
+            <i class="fas fa-list-ul"></i>
+            <h3>Pilih mata kuliah</h3>
+            <p>Pilih kelas terlebih dahulu untuk mulai menginput nilai.</p>
+        </div>
     </div>
 <?php endif; ?>
 

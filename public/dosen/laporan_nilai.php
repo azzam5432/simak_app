@@ -95,39 +95,6 @@ function warnaIps($ips) {
 include __DIR__ . '/../../includes/header.php';
 ?>
 
-<style>
-.filter-bar-dosen {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-.filter-bar-dosen select {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    min-width: 200px;
-    background: #fff;
-    font-size: 14px;
-}
-.mini-stat {
-    display: inline-block;
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    padding: 8px 15px;
-    border-radius: 8px;
-    margin: 5px 5px 0 0;
-    text-align: center;
-    min-width: 90px;
-}
-.mini-stat .num { font-size: 18px; font-weight: 700; color: var(--secondary); }
-.mini-stat .lbl { font-size: 11px; color: #7f8c8d; }
-</style>
-
 <!-- Statistik Umum -->
 <div class="stats-grid">
     <div class="stat-card">
@@ -150,7 +117,7 @@ include __DIR__ . '/../../includes/header.php';
 <div class="table-container">
 
     <!-- Filter -->
-    <form method="GET" class="filter-bar-dosen">
+    <form method="GET" class="filter-bar">
         <div class="form-group" style="flex: 1; min-width: 240px;">
             <label class="form-label" style="font-size: 13px;">Mata Kuliah</label>
             <select class="form-select" name="course_id" required>
@@ -209,27 +176,27 @@ include __DIR__ . '/../../includes/header.php';
             </span>
         </h4>
         <div style="margin-bottom: 20px;">
-            <div class="mini-stat">
+            <div class="stat-chip">
                 <div class="num"><?= $statistik['jumlah_mhs'] ?></div>
                 <div class="lbl">Mahasiswa</div>
             </div>
-            <div class="mini-stat">
+            <div class="stat-chip">
                 <div class="num" style="color: <?= warnaIps($statistik['rata_rata'] >= 75 ? 3.0 : ($statistik['rata_rata'] >= 65 ? 2.5 : 2.0)) ?>;">
                     <?= number_format($statistik['rata_rata'], 2) ?>
                 </div>
                 <div class="lbl">Rata-rata</div>
             </div>
-            <div class="mini-stat">
+            <div class="stat-chip">
                 <div class="num" style="color: <?= warnaIps($statistik['ips']) ?>;">
                     <?= $statistik['ips'] !== null ? number_format($statistik['ips'], 2) : '–' ?>
                 </div>
                 <div class="lbl">IPS / Bobot</div>
             </div>
-            <div class="mini-stat"><div class="num" style="color: #27ae60;"><?= $statistik['jumlah_a'] ?></div><div class="lbl">A</div></div>
-            <div class="mini-stat"><div class="num" style="color: #2980b9;"><?= $statistik['jumlah_b'] ?></div><div class="lbl">B</div></div>
-            <div class="mini-stat"><div class="num" style="color: #d68910;"><?= $statistik['jumlah_c'] ?></div><div class="lbl">C</div></div>
-            <div class="mini-stat"><div class="num" style="color: #ca6f1e;"><?= $statistik['jumlah_d'] ?></div><div class="lbl">D</div></div>
-            <div class="mini-stat"><div class="num" style="color: #c0392b;"><?= $statistik['jumlah_e'] ?></div><div class="lbl">E</div></div>
+            <div class="stat-chip"><div class="num text-success"><?= $statistik['jumlah_a'] ?></div><div class="lbl">A</div></div>
+            <div class="stat-chip"><div class="num text-info"><?= $statistik['jumlah_b'] ?></div><div class="lbl">B</div></div>
+            <div class="stat-chip"><div class="num text-warning"><?= $statistik['jumlah_c'] ?></div><div class="lbl">C</div></div>
+            <div class="stat-chip"><div class="num text-warning"><?= $statistik['jumlah_d'] ?></div><div class="lbl">D</div></div>
+            <div class="stat-chip"><div class="num text-danger"><?= $statistik['jumlah_e'] ?></div><div class="lbl">E</div></div>
         </div>
 
         <!-- Detail Nilai -->
@@ -276,7 +243,7 @@ include __DIR__ . '/../../includes/header.php';
                 <?php endforeach; ?>
             </tbody>
             <tfoot>
-                <tr style="background: #f8f9fa; font-weight: bold;">
+                <tr class="row-total">
                     <td colspan="7" style="text-align: right;">Rata-rata / IPS:</td>
                     <td><?= $statistik['rata_rata'] !== null ? number_format($statistik['rata_rata'], 2) : '–' ?></td>
                     <td colspan="2"></td>

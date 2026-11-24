@@ -86,11 +86,11 @@ if ($course_id) {
 include __DIR__ . '/../../includes/header.php';
 ?>
 
-<div class="table-container" style="margin-bottom: 20px;">
+<div class="table-container">
     <div class="table-header">
         <h3><i class="fas fa-chalkboard"></i> Pilih Kelas</h3>
     </div>
-    <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+    <form method="GET" class="d-flex flex-wrap gap-2 align-items-center">
         <select class="form-select" name="course_id" required>
             <option value="">-- Pilih Mata Kuliah --</option>
             <?php foreach ($matakuliah as $mk): ?>
@@ -107,27 +107,19 @@ include __DIR__ . '/../../includes/header.php';
 
 <?php if ($course_id && !empty($mahasiswa)): ?>
 
-<div class="table-container" style="margin-bottom: 20px;">
+<div class="table-container">
     <div class="table-header">
         <h3><i class="fas fa-broadcast-tower"></i> Sesi Presensi</h3>
     </div>
-    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+    <div class="d-flex flex-wrap gap-3 align-items-center">
         <?php if ($sesi_aktif): ?>
-            <div style="padding: 15px 20px; background: #d4edda; border-radius: 8px; color: #155724; flex: 1;">
-                <div style="font-size: 14px; margin-bottom: 5px;">
-                    <i class="fas fa-circle" style="color: #2ecc71;"></i> <strong>Sesi Aktif</strong>
-                </div>
-                <div style="font-size: 32px; font-weight: bold; letter-spacing: 5px; text-align: center; padding: 10px; background: #fff; border-radius: 6px; margin: 10px 0;">
-                    <?= $sesi_aktif['kode'] ?>
-                </div>
-                <small>
-                    <i class="fas fa-clock"></i> Mulai: <?= date('H:i:s', strtotime($sesi_aktif['waktu_mulai'])) ?>
-                </small>
-                <p style="margin: 5px 0 0; font-size: 13px;">
-                    <i class="fas fa-info-circle"></i> Beritahu kode ini ke mahasiswa untuk presensi
-                </p>
-                
-                <form method="POST" style="margin-top: 12px;"
+            <div class="session-panel">
+                <h4><i class="fas fa-circle" style="color: var(--success); font-size: 8px;"></i> Sesi Aktif</h4>
+                <div class="session-code"><?= $sesi_aktif['kode'] ?></div>
+                <small><i class="fas fa-clock"></i> Mulai: <?= date('H:i:s', strtotime($sesi_aktif['waktu_mulai'])) ?></small>
+                <p><i class="fas fa-info-circle"></i> Beritahu kode ini ke mahasiswa untuk presensi.</p>
+
+                <form method="POST" class="mt-2"
                       onsubmit="return confirm('Kirim token presensi via email ke semua mahasiswa MK ini?');">
                     <input type="hidden" name="action" value="kirim_token_email">
                     <input type="hidden" name="course_id" value="<?= $sesi_aktif['course_id'] ?>">
@@ -139,31 +131,29 @@ include __DIR__ . '/../../includes/header.php';
             <form method="POST">
                 <input type="hidden" name="action" value="close_session">
                 <input type="hidden" name="course_id" value="<?= $sesi_aktif['course_id'] ?>">
-                <button type="submit" class="btn btn-danger" style="padding: 15px 25px;">
+                <button type="submit" class="btn btn-danger">
                     <i class="fas fa-stop-circle"></i> Tutup Sesi
                 </button>
             </form>
         <?php else: ?>
-            <form method="POST" style="flex: 1;">
+            <form method="POST" class="flex-grow-1">
                 <input type="hidden" name="action" value="open_session">
                 <input type="hidden" name="course_id" value="<?= $course_id ?>">
-                <button type="submit" class="btn btn-success w-100" style="padding: 15px; font-size: 16px;">
+                <button type="submit" class="btn btn-success w-100">
                     <i class="fas fa-play-circle"></i> Buka Sesi Presensi
                 </button>
             </form>
-            <span style="color: #7f8c8d; font-size: 13px;">
-                <i class="fas fa-info-circle"></i> Kode akan muncul setelah sesi dibuka
+            <span class="text-muted small">
+                <i class="fas fa-info-circle"></i> Kode akan muncul setelah sesi dibuka.
             </span>
         <?php endif; ?>
     </div>
 </div>
 
-<div class="table-container" style="margin-bottom: 20px;">
+<div class="table-container">
     <div class="table-header">
         <h3><i class="fas fa-clipboard-list"></i> Input Presensi - <?= date('d-m-Y', strtotime($tanggal)) ?></h3>
-        <div>
-            <span style="color: #7f8c8d;">Total: <?= count($mahasiswa) ?> mahasiswa</span>
-        </div>
+        <span class="text-muted small">Total: <?= count($mahasiswa) ?> mahasiswa</span>
     </div>
     
     <form method="POST">
@@ -186,10 +176,10 @@ include __DIR__ . '/../../includes/header.php';
                         <td><?= htmlspecialchars($m['nama']) ?></td>
                         <td>
                             <select class="form-select" name="presensi[<?= $m['mahasiswa_id'] ?>]" required>
-                                <option value="hadir" <?= ($presensi_map[$m['id']] ?? '') === 'hadir' ? 'selected' : '' ?>>Hadir</option>
-                                <option value="izin" <?= ($presensi_map[$m['id']] ?? '') === 'izin' ? 'selected' : '' ?>>Izin</option>
-                                <option value="sakit" <?= ($presensi_map[$m['id']] ?? '') === 'sakit' ? 'selected' : '' ?>>Sakit</option>
-                                <option value="alpa" <?= ($presensi_map[$m['id']] ?? '') === 'alpa' ? 'selected' : '' ?>>Alpa</option>
+                                <option value="hadir" <?= ($presensi_map[$m['mahasiswa_id']] ?? '') === 'hadir' ? 'selected' : '' ?>>Hadir</option>
+                                <option value="izin" <?= ($presensi_map[$m['mahasiswa_id']] ?? '') === 'izin' ? 'selected' : '' ?>>Izin</option>
+                                <option value="sakit" <?= ($presensi_map[$m['mahasiswa_id']] ?? '') === 'sakit' ? 'selected' : '' ?>>Sakit</option>
+                                <option value="alpa" <?= ($presensi_map[$m['mahasiswa_id']] ?? '') === 'alpa' ? 'selected' : '' ?>>Alpa</option>
                             </select>
                         </td>
                     </tr>
@@ -197,7 +187,7 @@ include __DIR__ . '/../../includes/header.php';
             </tbody>
         </table>
         
-        <div style="margin-top: 15px;">
+        <div class="mt-3">
             <button type="submit" class="btn btn-primary">
                 <i class="fas fa-save"></i> Simpan Presensi
             </button>
@@ -227,10 +217,10 @@ include __DIR__ . '/../../includes/header.php';
                 <tr>
                     <td><strong><?= htmlspecialchars($r['nim']) ?></strong></td>
                     <td><?= htmlspecialchars($r['mahasiswa_nama']) ?></td>
-                    <td style="color: #2ecc71;"><?= $r['hadir'] ?></td>
-                    <td style="color: #f39c12;"><?= $r['izin'] ?></td>
-                    <td style="color: #3498db;"><?= $r['sakit'] ?></td>
-                    <td style="color: #e74c3c;"><?= $r['alpa'] ?></td>
+                    <td class="text-success"><?= $r['hadir'] ?></td>
+                    <td class="text-warning"><?= $r['izin'] ?></td>
+                    <td class="text-info"><?= $r['sakit'] ?></td>
+                    <td class="text-danger"><?= $r['alpa'] ?></td>
                     <td><strong><?= $r['total_pertemuan'] ?></strong></td>
                 </tr>
             <?php endforeach; ?>
@@ -240,15 +230,19 @@ include __DIR__ . '/../../includes/header.php';
 
 <?php elseif ($course_id): ?>
     <div class="table-container">
-        <p style="text-align: center; color: #7f8c8d; padding: 30px;">
-            Belum ada mahasiswa yang terdaftar di kelas ini.
-        </p>
+        <div class="empty-state">
+            <i class="fas fa-users"></i>
+            <h3>Belum ada mahasiswa</h3>
+            <p>Tidak ada mahasiswa yang terdaftar di kelas ini.</p>
+        </div>
     </div>
 <?php else: ?>
     <div class="table-container">
-        <p style="text-align: center; color: #7f8c8d; padding: 30px;">
-            Silakan pilih kelas terlebih dahulu.
-        </p>
+        <div class="empty-state">
+            <i class="fas fa-chalkboard"></i>
+            <h3>Pilih kelas</h3>
+            <p>Pilih mata kuliah dan tanggal untuk membuka daftar presensi.</p>
+        </div>
     </div>
 <?php endif; ?>
 

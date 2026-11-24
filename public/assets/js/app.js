@@ -123,6 +123,35 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Dropdown notifikasi di top bar
+    const notifToggle = document.getElementById('notifToggle');
+    const notifDropdown = document.getElementById('notifDropdown');
+    if (notifToggle && notifDropdown) {
+        notifToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isOpen = notifDropdown.classList.toggle('open');
+            notifToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        notifDropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        document.addEventListener('click', function() {
+            if (notifDropdown.classList.contains('open')) {
+                notifDropdown.classList.remove('open');
+                notifToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && notifDropdown.classList.contains('open')) {
+                notifDropdown.classList.remove('open');
+                notifToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
     const presensiPage = document.querySelector('.presensi-page');
     if (presensiPage) {
         setInterval(() => {

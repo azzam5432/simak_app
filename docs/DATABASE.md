@@ -225,7 +225,7 @@ Format kolom: **nama | tipe | constraint | default | keterangan**
 | mahasiswa_id | INT | NOT NULL, FK → mahasiswa.id | - | 1 mhs 1 submit per task |
 | file_path | VARCHAR(255) | NULL | NULL | Jalur file/unggahan |
 | catatan | TEXT | NULL | NULL | |
-| status | ENUM('draft','submitted','late') | NULL | 'draft' | |
+| status | ENUM('draft','submitted','late','validated') | NULL | 'draft' | 'validated' = hasil tugas sudah divalidasi dosen |
 | nilai | DECIMAL(5,2) | NULL | NULL | Nilai dosen ke tugas |
 | submitted_at | TIMESTAMP | - | CURRENT_TIMESTAMP | |
 

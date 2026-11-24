@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../controllers/MahasiswaController.php';
+require_once __DIR__ . '/../../controllers/NotifikasiController.php';
 
 checkAccess(['mahasiswa']);
 
@@ -19,8 +20,16 @@ if (!$mahasiswa) {
 $controller = new MahasiswaController($pdo, $mahasiswa['id']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'submit') {
-    $result = $controller->submitTugas($_POST['task_id'], null, $_POST['catatan'] ?? null);
+    $task_id = intval($_POST['task_id'] ?? 0);
+    $upload = $controller->uploadBuktiTugas($_FILES['bukti'] ?? null, $task_id);
+    
+    if (!$upload['success']) {
+        redirectWithMessage('/simak_app/public/mahasiswa/tugas.php', 'Gagal: ' . $upload['message'], 'error');
+    }
+    
+    $result = $controller->submitTugas($task_id, $upload['path'], $_POST['catatan'] ?? null);
     if ($result['success']) {
+        NotifikasiController::tugasDikumpulkan($pdo, $task_id, $mahasiswa['id']);
         redirectWithMessage('/simak_app/public/mahasiswa/tugas.php', 'Tugas berhasil dikumpulkan!', 'success');
     } else {
         redirectWithMessage('/simak_app/public/mahasiswa/tugas.php', 'Gagal: ' . $result['message'], 'error');
@@ -41,9 +50,11 @@ include __DIR__ . '/../../includes/header.php';
     </div>
     
     <?php if (empty($tugas)): ?>
-        <p style="text-align: center; color: #7f8c8d; padding: 30px;">
-            Belum ada tugas yang diberikan
-        </p>
+        <div class="empty-state">
+            <i class="fas fa-file-alt"></i>
+            <h3>Belum ada tugas</h3>
+            <p>Tugas dari dosen akan tampil di sini.</p>
+        </div>
     <?php else: ?>
         <table class="table table-striped table-hover align-middle">
             <thead>
@@ -59,16 +70,16 @@ include __DIR__ . '/../../includes/header.php';
                 <?php foreach ($tugas as $t):
                     $status_tugas = $t['status_tugas'];
                     $status_label = [
-                        'active' => '<i class="fas fa-circle"></i> Aktif',
-                        'urgent' => '<i class="fas fa-circle"></i> Mendesak!',
-                        'submitted' => '<i class="fas fa-check"></i> Dikumpulkan',
-                        'expired' => '<i class="fas fa-clock"></i> Expired'
+                        'active' => 'Aktif',
+                        'urgent' => 'Mendesak',
+                        'submitted' => 'Dikumpulkan',
+                        'expired' => 'Expired'
                     ];
-                    $status_color = [
-                        'active' => '#2ecc71',
-                        'urgent' => '#e74c3c',
-                        'submitted' => '#3498db',
-                        'expired' => '#95a5a6'
+                    $status_class = [
+                        'active' => 'status-active',
+                        'urgent' => 'status-urgent',
+                        'submitted' => 'status-submitted',
+                        'expired' => 'status-expired'
                     ];
                 ?>
                     <tr>
@@ -77,15 +88,23 @@ include __DIR__ . '/../../includes/header.php';
                         <td>
                             <?= date('d-m-Y H:i', strtotime($t['deadline'])) ?>
                             <?php if ($status_tugas === 'urgent'): ?>
-                                <br><small style="color: #e74c3c;"><i class="fas fa-hourglass-half"></i> <?= floor($t['jam_tersisa'] / 24) ?> hari <?= $t['jam_tersisa'] % 24 ?> jam lagi</small>
+                                <div class="deadline is-late mt-1"><i class="fas fa-hourglass-half"></i> <?= floor($t['jam_tersisa'] / 24) ?> hari <?= $t['jam_tersisa'] % 24 ?> jam lagi</div>
                             <?php endif; ?>
                         </td>
                         <td>
-                            <span style="font-weight: 600; font-size: 12px;">
+                            <span class="status-badge <?= $status_class[$status_tugas] ?? 'status-draft' ?>">
                                 <?= $status_label[$status_tugas] ?? 'Unknown' ?>
                             </span>
+                            <?php if (!empty($t['file_path'])): ?>
+                                <div class="mt-1"><a href="/simak_app/public/<?= htmlspecialchars($t['file_path']) ?>" target="_blank" class="small">
+                                    <i class="fas fa-image"></i> Lihat bukti
+                                </a></div>
+                            <?php endif; ?>
                             <?php if ($t['submission_nilai'] !== null): ?>
-                                <br><small style="color: #2ecc71;">Nilai: <?= $t['submission_nilai'] ?></small>
+                                <div class="stat-sub">Nilai: <strong><?= $t['submission_nilai'] ?></strong></div>
+                            <?php endif; ?>
+                            <?php if ($t['submission_status'] === 'validated'): ?>
+                                <div class="stat-sub"><i class="fas fa-check-double"></i> Tervalidasi dosen</div>
                             <?php endif; ?>
                         </td>
                         <td>
@@ -94,9 +113,9 @@ include __DIR__ . '/../../includes/header.php';
                                     <i class="fas fa-upload"></i> Kumpulkan
                                 </button>
                             <?php elseif ($status_tugas === 'submitted'): ?>
-                                <span style="color: #2ecc71;"><i class="fas fa-check"></i> Tersubmit</span>
+                                <span class="status-badge status-submitted">Tersubmit</span>
                             <?php else: ?>
-                                <span style="color: #95a5a6;"><i class="fas fa-clock"></i> Expired</span>
+                                <span class="status-badge status-expired">Expired</span>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -106,21 +125,29 @@ include __DIR__ . '/../../includes/header.php';
     <?php endif; ?>
 </div>
 
-<div id="modalSubmit" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999;">
-    <div class="modal-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);"></div>
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; padding: 30px; max-width: 450px; width: 90%;">
-        <h3 style="margin-bottom: 10px;"><i class="fas fa-upload"></i> Kumpulkan Tugas</h3>
-        <p id="submitInfo" style="color: #7f8c8d; margin-bottom: 15px;"></p>
+<div id="modalSubmit" class="modal">
+    <div class="modal-overlay" onclick="document.getElementById('modalSubmit').style.display='none'"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-upload"></i> Kumpulkan Tugas</h3>
+            <button type="button" class="modal-close" aria-label="Tutup" onclick="document.getElementById('modalSubmit').style.display='none'">&times;</button>
+        </div>
+        <p id="submitInfo" class="text-muted mb-3"></p>
         <form method="POST" enctype="multipart/form-data">
             <input type="hidden" name="action" value="submit">
             <input type="hidden" name="task_id" id="submitTaskId">
             <div class="form-group">
+                <label class="form-label">Screenshot Bukti Tugas</label>
+                <input class="form-control" type="file" name="bukti" accept="image/jpeg,image/png,image/webp">
+                <span class="help-text">Format JPG, PNG, atau WEBP (maks. 5MB).</span>
+            </div>
+            <div class="form-group">
                 <label class="form-label">Catatan (opsional)</label>
                 <textarea class="form-control" name="catatan" rows="3" placeholder="Tambahkan catatan untuk tugas..."></textarea>
             </div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('modalSubmit').style.display='none'">Batal</button>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-upload"></i> Kumpulkan</button>
-                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalSubmit').style.display='none'">Batal</button>
             </div>
         </form>
     </div>

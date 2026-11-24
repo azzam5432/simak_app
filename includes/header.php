@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../controllers/NotifikasiController.php';
 
 if (!isLoggedIn()) {
     header("Location: /simak_app/public/index.php");
@@ -17,9 +18,14 @@ $role = $_SESSION['role'];
 $nama = $_SESSION['nama'];
 $initial = strtoupper(substr($nama, 0, 1));
 
+// Notifikasi dalam aplikasi (lonceng di top bar)
+$notif_controller = new NotifikasiController($pdo);
+$notif_unread = $notif_controller->countBelumDibaca($_SESSION['user_id']);
+$notif_list = $notif_controller->getUntukUser($_SESSION['user_id'], 8);
+
 // CSS per halaman: base.css selalu dimuat, file tambahan sesuai halamannya
 // supaya perubahan style satu halaman tidak menabrak halaman lain
-$css_v = 1;
+$css_v = 6;
 $page_css_map = [
     'dashboard.php'       => ['dashboard.css'],
     'profil.php'          => ['profil.css'],
@@ -59,7 +65,7 @@ $page_extra_css = $page_css_map[$current_page] ?? [];
 <div class="app-container">
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <i class="fas fa-graduation-cap brand-icon"></i>
+            <img src="/simak_app/public/assets/img/poltek.png" alt="Politeknik Mitra Industri" class="brand-logo">
             <h2>SIMAK</h2>
             <small>Politeknik Mitra Industri</small>
         </div>
@@ -187,6 +193,11 @@ $page_extra_css = $page_css_map[$current_page] ?? [];
                     </a>
                 </li>
                 <li>
+                    <a href="/simak_app/public/dosen/laporan_absensi.php" class="<?= $current_page === 'laporan_absensi.php' ? 'active' : '' ?>">
+                        <i class="fas fa-clipboard-check"></i> Laporan Absensi
+                    </a>
+                </li>
+                <li>
                     <a href="/simak_app/public/dosen/tugas.php" class="<?= $current_page === 'tugas.php' ? 'active' : '' ?>">
                         <i class="fas fa-tasks"></i> Tugas
                     </a>
@@ -261,6 +272,65 @@ $page_extra_css = $page_css_map[$current_page] ?? [];
                 <span class="breadcrumb">/ <?= ucfirst($role) ?></span>
             </div>
             <div class="user-info">
+                <div class="notif-wrap" id="notifWrap">
+                    <button type="button" class="notif-toggle<?= $notif_unread > 0 ? ' has-unread' : '' ?>"
+                            id="notifToggle" aria-label="Notifikasi"
+                            aria-haspopup="true" aria-expanded="false" title="Notifikasi">
+                        <i class="fas fa-bell"></i>
+                        <span class="notif-badge" id="notifBadge"><?= $notif_unread > 9 ? '9+' : $notif_unread ?></span>
+                    </button>
+                    <div class="notif-dropdown" id="notifDropdown" role="menu">
+                        <div class="notif-dropdown-header">
+                            <div class="notif-dropdown-title">
+                                <span class="notif-dropdown-icon"><i class="fas fa-bell"></i></span>
+                                <div>
+                                    <strong>Notifikasi</strong>
+                                    <span><?= $notif_unread > 0 ? $notif_unread . ' belum dibaca' : 'Semua sudah dibaca' ?></span>
+                                </div>
+                            </div>
+                            <?php if ($notif_unread > 0): ?>
+                                <a class="notif-markall" href="/simak_app/public/notifikasi.php?baca_semua=1"
+                                   title="Tandai semua notifikasi sudah dibaca">
+                                    <i class="fas fa-check-double"></i> Tandai semua
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                        <div class="notif-list">
+                            <?php if (empty($notif_list)): ?>
+                                <div class="notif-empty">
+                                    <span class="notif-empty-icon"><i class="fas fa-bell-slash"></i></span>
+                                    <strong>Belum ada notifikasi</strong>
+                                    <span>Pemberitahuan tugas akan muncul di sini.</span>
+                                </div>
+                            <?php else: ?>
+                                <?php foreach ($notif_list as $notif): ?>
+                                    <a class="notif-item <?= $notif['is_read'] ? '' : 'unread' ?>"
+                                       href="/simak_app/public/notifikasi.php?baca=<?= intval($notif['id']) ?>">
+                                        <span class="notif-icon <?= $notif['type'] === 'tugas_validated' ? 'notif-icon-success' : 'notif-icon-info' ?>">
+                                            <i class="fas <?= NotifikasiController::ikon($notif['type']) ?>"></i>
+                                        </span>
+                                        <span class="notif-text">
+                                            <span class="notif-title"><?= htmlspecialchars($notif['judul']) ?></span>
+                                            <span class="notif-message"><?= htmlspecialchars($notif['pesan']) ?></span>
+                                            <span class="notif-time">
+                                                <i class="far fa-clock"></i>
+                                                <?= NotifikasiController::waktuRelatif($notif['created_at']) ?>
+                                            </span>
+                                        </span>
+                                        <?php if (!$notif['is_read']): ?>
+                                            <span class="notif-dot" title="Belum dibaca"></span>
+                                        <?php endif; ?>
+                                    </a>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                        <div class="notif-dropdown-footer">
+                            <a href="/simak_app/public/notifikasi.php">
+                                Lihat semua notifikasi <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 <span class="user-badge"><i class="fas fa-user-circle"></i> <?= ucfirst($role) ?></span>
                 <span class="user-name"><?= htmlspecialchars($nama) ?></span>
                 <?php 

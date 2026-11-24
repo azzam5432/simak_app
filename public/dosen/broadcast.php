@@ -51,83 +51,88 @@ $history = $controller->getBroadcastHistory();
 include __DIR__ . '/../../includes/header.php';
 ?>
 
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
-    <div>
-        <div class="table-container">
+<div class="split-grid">
+    <div class="table-container">
+        <div class="table-header">
             <h3><i class="fas fa-bullhorn"></i> Kirim Pengumuman</h3>
-            <form method="POST">
-                <input type="hidden" name="action" value="send">
-                
-                <div class="form-group">
-                    <label class="form-label">Judul Pengumuman</label>
-                    <input class="form-control" type="text" name="judul" required placeholder="Masukkan judul pengumuman">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Target</label>
-                    <select class="form-select" name="target_role" required>
-                        <option value="all">Semua Pengguna</option>
-                        <option value="mahasiswa">Mahasiswa</option>
-                        <option value="dosen">Dosen</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Prioritas</label>
-                    <select class="form-select" name="priority">
-                        <option value="low">Rendah</option>
-                        <option value="medium" selected>Sedang</option>
-                        <option value="high">Tinggi</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Pesan</label>
-                    <textarea class="form-control" name="pesan" rows="5" required placeholder="Tulis pesan pengumuman..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
-                        <input class="form-check-input" type="checkbox" name="kirim_email" value="1" style="width: 16px; height: 16px;">
-                        <i class="fas fa-envelope"></i> Kirim juga via email ke penerima
-                        <small style="color: #7f8c8d;">(butuh waktu tergantung jumlah penerima)</small>
-                    </label>
-                </div>
-                
-                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-paper-plane"></i> Kirim Pengumuman</button>
-            </form>
         </div>
+        <form method="POST">
+            <input type="hidden" name="action" value="send">
+
+            <div class="form-group">
+                <label class="form-label" for="judul">Judul Pengumuman</label>
+                <input class="form-control" type="text" id="judul" name="judul" required placeholder="Masukkan judul pengumuman">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="target_role">Target</label>
+                <select class="form-select" id="target_role" name="target_role" required>
+                    <option value="all">Semua Pengguna</option>
+                    <option value="mahasiswa">Mahasiswa</option>
+                    <option value="dosen">Dosen</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="priority">Prioritas</label>
+                <select class="form-select" id="priority" name="priority">
+                    <option value="low">Rendah</option>
+                    <option value="medium" selected>Sedang</option>
+                    <option value="high">Tinggi</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="pesan">Pesan</label>
+                <textarea class="form-control" id="pesan" name="pesan" rows="5" required placeholder="Tulis pesan pengumuman..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label d-flex align-items-center gap-2 fw-normal" style="cursor: pointer;">
+                    <input class="form-check-input m-0" type="checkbox" name="kirim_email" value="1">
+                    <span><i class="fas fa-envelope"></i> Kirim juga via email
+                        <span class="text-muted small d-block">Butuh waktu tergantung jumlah penerima.</span>
+                    </span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-paper-plane"></i> Kirim Pengumuman
+            </button>
+        </form>
     </div>
-    
-    <div>
-        <div class="table-container">
+
+    <div class="table-container">
+        <div class="table-header">
             <h3><i class="fas fa-history"></i> Riwayat Pengumuman</h3>
-            
-            <?php if (empty($history)): ?>
-                <p style="text-align: center; color: #7f8c8d; padding: 20px;">
-                    Belum ada pengumuman yang dikirim
-                </p>
-            <?php else: ?>
+        </div>
+
+        <?php if (empty($history)): ?>
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>Belum ada pengumuman</h3>
+                <p>Pengumuman yang Anda kirim akan tampil di sini.</p>
+            </div>
+        <?php else: ?>
+            <div class="feed-list">
                 <?php foreach ($history as $h): ?>
-                    <div style="padding: 12px 15px; border-bottom: 1px solid #e9ecef;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <strong><?= htmlspecialchars($h['judul']) ?></strong>
-                            <small style="color: #7f8c8d;">
-                                <?= date('d-m-Y H:i', strtotime($h['created_at'])) ?>
-                            </small>
-                        </div>
-                        <div style="font-size: 13px; color: #555; margin: 5px 0;">
-                            <?= htmlspecialchars(substr($h['pesan'], 0, 80)) ?>...
-                        </div>
-                        <div style="display: flex; gap: 10px; font-size: 12px; color: #7f8c8d;">
-                            <span><i class="fas fa-bullseye"></i> Target: <?= ucfirst($h['target_role']) ?></span>
-                            <span><i class="fas fa-star"></i> Prioritas: <?= ucfirst($h['priority']) ?></span>
+                    <div class="feed-item<?= $h['priority'] === 'high' ? ' is-important' : '' ?>">
+                        <div class="feed-main">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <span class="feed-title"><?= htmlspecialchars($h['judul']) ?></span>
+                                <span class="feed-meta"><?= date('d-m-Y H:i', strtotime($h['created_at'])) ?></span>
+                            </div>
+                            <span class="feed-text"><?= htmlspecialchars(substr($h['pesan'], 0, 80)) ?>...</span>
+                            <div class="feed-meta">
+                                <span><i class="fas fa-bullseye"></i> Target: <?= ucfirst($h['target_role']) ?></span>
+                                <span><i class="fas fa-star"></i> Prioritas: <?= ucfirst($h['priority']) ?></span>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 

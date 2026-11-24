@@ -212,7 +212,7 @@ include __DIR__ . '/../../includes/header.php';
 
             <div class="form-group">
                 <label class="form-label">Semester (Otomatis)</label>
-                <input class="form-control" type="text" id="tambah_semester_info" readonly style="background: #f4f6f8; font-weight: 600;">
+                <input class="form-control fw-semibold" type="text" id="tambah_semester_info" readonly>
                 <small class="help-text"><i class="fas fa-info-circle"></i> Semester <?= $semester_label ?> (<?= date('n') ?>/<?= date('m') ?> bulan ini)</small>
             </div>
 
@@ -306,7 +306,7 @@ include __DIR__ . '/../../includes/header.php';
 
             <div class="form-group">
                 <label class="form-label">Semester (Otomatis)</label>
-                <input class="form-control" type="text" id="edit_semester_info" readonly style="background: #f4f6f8; font-weight: 600;">
+                <input class="form-control fw-semibold" type="text" id="edit_semester_info" readonly>
             </div>
 
             <h4 class="section-title"><i class="fas fa-key"></i> Akun Login</h4>

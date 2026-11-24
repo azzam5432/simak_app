@@ -74,7 +74,7 @@ include __DIR__ . '/../../includes/header.php';
     </div>
 
     <!-- Filter -->
-    <form method="GET" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 20px;">
+    <form method="GET" class="filter-bar">
         <div class="form-group" style="margin: 0; min-width: 200px; flex: 1;">
             <label class="form-label" style="font-size: 13px;">Mata Kuliah</label>
             <select class="form-select" name="course_id">

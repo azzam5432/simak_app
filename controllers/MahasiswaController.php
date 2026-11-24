@@ -140,10 +140,10 @@ class MahasiswaController {
         $stmt = $this->pdo->prepare("
             SELECT t.*, c.kode_mk, c.nama_mk,
                    ts.id as submission_id, ts.status as submission_status,
-                   ts.nilai as submission_nilai, ts.submitted_at,
+                   ts.nilai as submission_nilai, ts.submitted_at, ts.file_path,
                    CASE 
                        WHEN t.deadline < NOW() THEN 'expired'
-                       WHEN ts.id IS NOT NULL AND ts.status = 'submitted' THEN 'submitted'
+                       WHEN ts.id IS NOT NULL AND ts.status IN ('submitted','late','validated') THEN 'submitted'
                        WHEN t.deadline < DATE_ADD(NOW(), INTERVAL 1 DAY) THEN 'urgent'
                        ELSE 'active'
                    END as status_tugas,
@@ -172,11 +172,51 @@ class MahasiswaController {
                 AND i.status = 'approved'
                 AND t.deadline > NOW()
                 AND t.deadline < DATE_ADD(NOW(), INTERVAL 2 DAY)
-                AND (ts.id IS NULL OR ts.status != 'submitted')
+                AND (ts.id IS NULL OR ts.status NOT IN ('submitted','late','validated'))
             ORDER BY t.deadline ASC
         ");
         $stmt->execute([$this->mahasiswa_id, $this->mahasiswa_id]);
         return $stmt->fetchAll();
+    }
+    
+    /**
+     * Upload bukti tugas berupa screenshot.
+     * Mengembalikan path relatif terhadap folder public/ (null jika tidak ada file).
+     */
+    public function uploadBuktiTugas($file, $task_id) {
+        if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            return ['success' => true, 'path' => null];
+        }
+        
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return ['success' => false, 'message' => 'Gagal mengupload file'];
+        }
+        
+        if ($file['size'] > 5 * 1024 * 1024) {
+            return ['success' => false, 'message' => 'Ukuran screenshot maksimal 5MB'];
+        }
+        
+        $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+        
+        if (!isset($allowed[$mime])) {
+            return ['success' => false, 'message' => 'Format screenshot harus JPG, PNG, atau WEBP'];
+        }
+        
+        $upload_dir = __DIR__ . '/../public/uploads/tugas/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+        
+        $filename = 'tugas_' . intval($task_id) . '_' . $this->mahasiswa_id . '_' . time() . '.' . $allowed[$mime];
+        
+        if (!move_uploaded_file($file['tmp_name'], $upload_dir . $filename)) {
+            return ['success' => false, 'message' => 'Gagal menyimpan screenshot'];
+        }
+        
+        return ['success' => true, 'path' => 'uploads/tugas/' . $filename];
     }
     
     public function submitTugas($task_id, $file_path = null, $catatan = null) {

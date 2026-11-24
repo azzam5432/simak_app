@@ -52,40 +52,44 @@ include __DIR__ . '/../../includes/header.php';
     gap: 6px;
     align-items: center;
     flex-wrap: wrap;
-    padding: 12px 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    padding: 12px 14px;
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 18px;
 }
 .krs-semester-picker span.krs-title {
     font-weight: 600;
-    color: #2c3e50;
-    margin-right: 8px;
-    font-size: 14px;
+    color: var(--text);
+    margin-right: 6px;
+    font-size: 12.5px;
 }
 .krs-sem-btn {
-    display: inline-block;
-    padding: 6px 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 30px;
+    padding: 0 10px;
     border-radius: 6px;
-    border: 1px solid #ddd;
-    background: #fff;
-    color: #555;
-    font-size: 13px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--gray-dark);
+    font-size: 12.5px;
     text-decoration: none;
     font-weight: 600;
-    transition: all 0.2s;
 }
-.krs-sem-btn:hover { border-color: #3498db; color: #3498db; }
-.krs-sem-btn.active { background: #3498db; color: #fff; border-color: #3498db; }
-.krs-sem-btn.locked { opacity: 0.55; cursor: not-allowed; color: #999; }
-.krs-sem-btn.current { border-color: #27ae60; }
+.krs-sem-btn:hover { border-color: var(--primary); color: var(--primary-dark); }
+.krs-sem-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.krs-sem-btn.locked { opacity: 0.55; cursor: not-allowed; color: var(--gray-dark); }
+.krs-sem-btn.current { border-color: var(--success); }
 </style>
 
 <div class="table-container">
 
-    <h3 style="display: flex; align-items: center; gap: 8px; margin: 0 0 15px;">
-        <i class="fas fa-id-card" style="color: var(--primary);"></i> Report Kartu Rencana Studi (KRS)
-    </h3>
+    <div class="table-header">
+        <h3><i class="fas fa-id-card"></i> Report Kartu Rencana Studi (KRS)</h3>
+    </div>
 
     <!-- Pilih semester -->
     <div class="krs-semester-picker">
@@ -104,13 +108,13 @@ include __DIR__ . '/../../includes/header.php';
                 </span>
             <?php endif; ?>
         <?php endfor; ?>
-        <span style="margin-left: auto; font-size: 12px; color: #7f8c8d;">
+        <span class="text-muted small ms-auto">
             <i class="fas fa-info-circle"></i> IRS hanya dapat diisi pada semester aktif Anda
         </span>
     </div>
 
     <!-- Ringkasan -->
-    <div class="stats-grid" style="margin-bottom: 20px;">
+    <div class="stats-grid mb-3">
         <div class="stat-card">
             <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
             <div class="stat-number"><?= count($irs_list) ?></div>
@@ -192,7 +196,7 @@ include __DIR__ . '/../../includes/header.php';
                             </td>
                         </tr>
                     <?php endforeach; ?>
-                    <tr style="background: #f8f9fa; font-weight: bold;">
+                    <tr class="row-total">
                         <td colspan="3" style="text-align: right;">Total</td>
                         <td><?= $total_sks ?> SKS</td>
                         <td colspan="3"></td>

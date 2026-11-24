@@ -1,4 +1,4 @@
-        <footer class="text-center text-muted small mt-5 pt-3" style="color: #7f8c8d;">
+        <footer class="app-footer">
             <p>
                 <i class="fas fa-copyright"></i> <?= date('Y') ?> SIMAK - Sistem Informasi & Manajemen Akademik
             </p>
@@ -10,7 +10,7 @@
     </div>
 </div>
 
-<script src="/simak_app/public/assets/js/app.js?v=3"></script>
+<script src="/simak_app/public/assets/js/app.js?v=5"></script>
 
 <?php 
 $flash = getFlashMessage(); 

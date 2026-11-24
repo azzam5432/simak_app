@@ -1,7 +1,7 @@
 <?php
 // ============================================
 // controllers/PdfController.php
-// Generate PDF untuk semua laporan
+// Generate PDF untuk semua laporan (FORMAL STYLE + FONT BESAR)
 // ============================================
 
 require_once __DIR__ . '/../libraries/Dompdf/autoload.inc.php';
@@ -30,63 +30,59 @@ class PdfController {
     }
     
     /**
-     * Helper: tentukan orientasi kertas. Tabel/field yang lebar otomatis landscape.
-     * $is_wide = true -> landscape, false -> portrait.
+     * Helper: tentukan orientasi kertas.
      */
     private function paperOrientation($is_wide) {
         return $is_wide ? 'landscape' : 'portrait';
     }
     
     /**
-     * Generate header PDF (kop surat)
-     * Logo perusahaan: public/assets/img/logo_poltek.jpg — dibaca dari disk
-     * dan di-embed sebagai data URI agar dompdf tidak perlu remote access.
+     * Generate header PDF (kop surat formal)
      */
     private function getHeader($title) {
         $tanggal = date('d F Y');
-        $logo_path = __DIR__ . '/../public/assets/img/logo_poltek.jpg';
+        $logo_path = __DIR__ . '/../public/assets/img/poltek.png';
         if (file_exists($logo_path)) {
-            $logo_data = 'data:image/jpeg;base64,' . base64_encode(file_get_contents($logo_path));
+            $logo_data = 'data:image/png;base64,' . base64_encode(file_get_contents($logo_path));
         } else {
-            // fallback ke placeholder lambang "S" jika file logo tidak ada
             $logo_data = 'data:image/svg+xml;base64,' . base64_encode('
                 <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45" fill="#3498db"/>
+                    <circle cx="50" cy="50" r="45" fill="#1a3a5c"/>
                     <text x="50" y="65" font-size="40" text-anchor="middle" fill="white" font-family="Arial" font-weight="bold">S</text>
                 </svg>
             ');
         }
         
         return "
-            <div style='border-bottom: 3px double #2c3e50; padding-bottom: 15px; margin-bottom: 20px;'>
+            <div style='border-bottom: 3px solid #1a3a5c; padding-bottom: 12px; margin-bottom: 18px;'>
                 <table width='100%' cellpadding='0' cellspacing='0'>
                     <tr>
-                        <td width='95' style='vertical-align: middle;'>
-                            <img src='{$logo_data}' width='80' height='48'>
+                        <td width='110' style='vertical-align: middle;'>
+                            <img src='{$logo_data}' width='95' height='56'>
                         </td>
                         <td style='text-align: center; vertical-align: middle;'>
-                            <h1 style='margin: 0; font-size: 20px; color: #2c3e50; letter-spacing: 1px;'>
+                            <h1 style='margin: 0; font-size: 18px; color: #1a3a5c; letter-spacing: 1px; font-weight: bold;'>
                                 POLITEKNIK MITRA INDUSTRI
                             </h1>
-                            <p style='margin: 3px 0; font-size: 12px; color: #555;'>
-                                Sistem Informasi & Manajemen Akademik Kampus
+                            <p style='margin: 2px 0; font-size: 11px; color: #333;'>
+                                Sistem Informasi &amp; Manajemen Akademik Kampus
                             </p>
-                            <p style='margin: 3px 0; font-size: 11px; color: #7f8c8d;'>
-                                Jl. Raya Pendidikan No. 1, Kota Pendidikan | Telp: (021) 1234567
+                            <p style='margin: 2px 0; font-size: 10px; color: #555;'>
+                                Jl. kalimantan No. 1, kab. Bekasi | Telp: (021) 1234567
                             </p>
                         </td>
-                        <td width='95' style='vertical-align: middle; text-align: right;'>
-                            <div style='width: 80px; height: 48px;'></div>
+                        <td width='90' style='vertical-align: middle;'>
+                            <div style='width: 75px; height: 45px;'></div>
                         </td>
                     </tr>
                 </table>
             </div>
             
-            <div style='text-align: center; margin: 25px 0;'>
-                <h2 style='margin: 0; font-size: 18px; color: #2c3e50; text-transform: uppercase; letter-spacing: 1px;'>
+            <div style='text-align: center; margin: 22px 0 18px;'>
+                <h2 style='margin: 0; font-size: 15px; color: #1a3a5c; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;'>
                     {$title}
                 </h2>
-                <p style='margin: 5px 0; font-size: 12px; color: #7f8c8d;'>
+                <p style='margin: 4px 0 0; font-size: 10px; color: #555;'>
                     Dicetak: {$tanggal}
                 </p>
             </div>
@@ -94,7 +90,7 @@ class PdfController {
     }
     
     /**
-     * Generate footer PDF (tanda tangan)
+     * Generate footer PDF (tanda tangan formal)
      */
     private function getFooter($show_signature = true) {
         if (!$show_signature) return '';
@@ -102,23 +98,23 @@ class PdfController {
         $tanggal = date('d F Y');
         
         return "
-            <div style='margin-top: 40px; page-break-inside: avoid;'>
+            <div style='margin-top: 35px; page-break-inside: avoid;'>
                 <table width='100%' cellpadding='0' cellspacing='0'>
                     <tr>
                         <td width='50%'></td>
                         <td width='50%' style='text-align: center;'>
-                            <p style='margin: 0; font-size: 12px;'>Kota Pendidikan, {$tanggal}</p>
-                            <p style='margin: 5px 0; font-size: 12px;'>Admin Akademik,</p>
-                            <div style='height: 60px;'></div>
-                            <p style='margin: 0; font-size: 12px; border-top: 1px solid #333; display: inline-block; padding-top: 5px;'>
+                            <p style='margin: 0; font-size: 11px;'>Bekasi, {$tanggal}</p>
+                            <p style='margin: 4px 0; font-size: 11px;'>Administrasi Akademik,</p>
+                            <div style='height: 55px;'></div>
+                            <p style='margin: 0; font-size: 11px; border-top: 1px solid #333; display: inline-block; padding: 4px 25px 0;'>
                                 (_________________)
                             </p>
                         </td>
                     </tr>
                 </table>
                 
-                <div style='margin-top: 30px; padding-top: 15px; border-top: 1px solid #e9ecef; text-align: center;'>
-                    <p style='margin: 0; font-size: 10px; color: #7f8c8d;'>
+                <div style='margin-top: 25px; padding-top: 10px; border-top: 1px solid #999; text-align: center;'>
+                    <p style='margin: 0; font-size: 9px; color: #555;'>
                         Dokumen ini dihasilkan otomatis oleh Sistem SIMAK - Politeknik Mitra Industri
                     </p>
                 </div>
@@ -127,87 +123,91 @@ class PdfController {
     }
     
     /**
-     * Base CSS untuk PDF
+     * Base CSS untuk PDF (formal, font diperbesar)
      */
     private function getBaseStyle() {
         return "
             <style>
                 * { margin: 0; padding: 0; box-sizing: border-box; }
                 body { 
-                    font-family: Arial, sans-serif; 
-                    font-size: 11px; 
-                    color: #333; 
+                    font-family: Arial, Helvetica, sans-serif; 
+                    font-size: 12px;
+                    color: #222; 
                     line-height: 1.5;
-                    padding: 30px 40px;
+                    padding: 25px 35px;
                 }
-                h1, h2, h3 { color: #2c3e50; }
+                h1, h2, h3 { color: #1a3a5c; }
                 
                 table.data {
                     width: 100%;
                     border-collapse: collapse;
-                    margin: 15px 0;
+                    margin: 12px 0;
+                    border: 1px solid #333;
                 }
                 table.data th {
-                    background: #2c3e50;
+                    background: #1a3a5c;
                     color: #fff;
-                    padding: 8px 10px;
+                    padding: 8px 9px;
                     text-align: left;
-                    font-size: 10px;
+                    font-size: 11px;
                     text-transform: uppercase;
-                    border: 1px solid #2c3e50;
+                    border: 1px solid #1a3a5c;
+                    letter-spacing: 0.3px;
                 }
                 table.data td {
-                    padding: 7px 10px;
-                    border: 1px solid #ddd;
-                    font-size: 10px;
+                    padding: 7px 9px;
+                    border: 1px solid #999;
+                    font-size: 11px;
                 }
                 table.data tbody tr:nth-child(even) {
-                    background: #f8f9fa;
-                }
-                table.data tbody tr:hover {
-                    background: #e8f4fd;
+                    background: #f4f4f4;
                 }
                 
                 .text-center { text-align: center; }
                 .text-right { text-align: right; }
                 .text-bold { font-weight: bold; }
                 
-                .note {
+                .section-title {
+                    font-size: 13px;
                     font-weight: bold;
+                    color: #1a3a5c;
+                    margin: 18px 0 8px;
+                    padding-bottom: 4px;
+                    border-bottom: 1px solid #1a3a5c;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
                 }
                 
                 .info-box {
-                    background: #f8f9fa;
-                    border-left: 4px solid #3498db;
-                    padding: 12px 15px;
-                    margin: 15px 0;
-                    border-radius: 4px;
+                    border: 1px solid #999;
+                    padding: 10px 12px;
+                    margin: 12px 0;
+                    background: #fafafa;
                 }
                 .info-box table {
                     width: 100%;
                 }
                 .info-box td {
                     padding: 3px 0;
-                    font-size: 11px;
+                    font-size: 12px;
+                    vertical-align: top;
                 }
                 
-                .stat-box {
-                    display: inline-block;
-                    background: #f8f9fa;
-                    border: 1px solid #e9ecef;
-                    padding: 10px 15px;
-                    margin: 5px;
-                    border-radius: 4px;
-                    min-width: 100px;
+                .summary-table {
+                    width: auto;
+                    border-collapse: collapse;
+                    margin: 8px 0 12px;
+                    border: 1px solid #333;
                 }
-                .stat-box .stat-num {
-                    font-size: 18px;
+                .summary-table td {
+                    padding: 6px 14px;
+                    font-size: 11px;
+                    border: 1px solid #999;
+                }
+                .summary-table td.label {
                     font-weight: bold;
-                    color: #2c3e50;
-                }
-                .stat-box .stat-label {
-                    font-size: 9px;
-                    color: #7f8c8d;
+                    background: #f0f0f0;
+                    width: 180px;
                 }
             </style>
         ";
@@ -236,14 +236,14 @@ class PdfController {
             $filter_info .= "Semester: {$semester}<br>";
         }
         if (!$filter_info) {
-            $filter_info = "Semua Mata Kuliah & Semester";
+            $filter_info = "Semua Mata Kuliah &amp; Semester";
         }
         
         // Statistik HTML
         $statistik_html = '';
         if (!empty($statistik)) {
             $statistik_html = "
-                <h3 style='font-size: 13px; margin: 20px 0 10px;'>📊 Statistik Nilai per Mata Kuliah</h3>
+                <div class='section-title'>Statistik Nilai per Mata Kuliah</div>
                 <table class='data'>
                     <thead>
                         <tr>
@@ -269,8 +269,8 @@ class PdfController {
                         <td>{$s['nama_mk']}</td>
                         <td class='text-center'>{$s['total_mahasiswa']}</td>
                         <td class='text-center text-bold'>" . number_format($s['rata_rata'], 2) . "</td>
-                        <td class='text-center' style='color: #2ecc71;'>" . number_format($s['nilai_max'], 1) . "</td>
-                        <td class='text-center' style='color: #e74c3c;'>" . number_format($s['nilai_min'], 1) . "</td>
+                        <td class='text-center'>" . number_format($s['nilai_max'], 1) . "</td>
+                        <td class='text-center'>" . number_format($s['nilai_min'], 1) . "</td>
                         <td class='text-center'>{$s['jumlah_a']}</td>
                         <td class='text-center'>{$s['jumlah_b']}</td>
                         <td class='text-center'>{$s['jumlah_c']}</td>
@@ -284,7 +284,7 @@ class PdfController {
         
         // Detail nilai
         $detail_html = "
-            <h3 style='font-size: 13px; margin: 20px 0 10px;'>📋 Detail Nilai (" . count($data) . " data)</h3>
+            <div class='section-title'>Detail Nilai (" . count($data) . " data)</div>
             <table class='data'>
                 <thead>
                     <tr>
@@ -305,15 +305,15 @@ class PdfController {
         ";
         
         if (empty($data)) {
-            $detail_html .= "<tr><td colspan='11' class='text-center' style='padding: 20px; color: #7f8c8d;'>Tidak ada data nilai</td></tr>";
+            $detail_html .= "<tr><td colspan='11' class='text-center' style='padding: 20px; color: #555;'>Tidak ada data nilai</td></tr>";
         } else {
             foreach ($data as $row) {
                 $nilai = floatval($row['nilai_akhir']);
-                if ($nilai >= 85) { $huruf = 'A'; $warna = '#2ecc71'; }
-                elseif ($nilai >= 75) { $huruf = 'B'; $warna = '#3498db'; }
-                elseif ($nilai >= 65) { $huruf = 'C'; $warna = '#f39c12'; }
-                elseif ($nilai >= 50) { $huruf = 'D'; $warna = '#e67e22'; }
-                else { $huruf = 'E'; $warna = '#e74c3c'; }
+                if ($nilai >= 85)      { $huruf = 'A'; }
+                elseif ($nilai >= 75)  { $huruf = 'B'; }
+                elseif ($nilai >= 65)  { $huruf = 'C'; }
+                elseif ($nilai >= 50)  { $huruf = 'D'; }
+                else                   { $huruf = 'E'; }
                 
                 $detail_html .= "
                     <tr>
@@ -327,7 +327,7 @@ class PdfController {
                         <td class='text-center'>" . number_format($row['nilai_uts'], 1) . "</td>
                         <td class='text-center'>" . number_format($row['nilai_uas'], 1) . "</td>
                         <td class='text-center text-bold'>" . number_format($nilai, 1) . "</td>
-                        <td class='text-center' style='color: {$warna}; font-weight: bold;'>{$huruf}</td>
+                        <td class='text-center text-bold'>{$huruf}</td>
                     </tr>
                 ";
             }
@@ -387,7 +387,7 @@ class PdfController {
         
         $ips_data = LaporanController::agregasiPerSemester($rows);
         
-        // Hitung IPK/IPS dari baris yang tampil
+        // Hitung IPK/IPS
         $total_sks = 0; $total_bobot = 0.0;
         foreach ($rows as $r) {
             $tp = intval($r['total_pertemuan']);
@@ -403,11 +403,11 @@ class PdfController {
         $filter_info = 'Mahasiswa: ' . ($mhs['nim'] ?? '-') . ' - ' . ($mhs['mahasiswa_nama'] ?? '-')
             . ' | ' . ($mhs['program_studi'] ?? '-') . '<br><strong>' . $gpa_label . ': ' . number_format($gpa, 2) . '</strong>';
         
-        // Tabel IPS per semester (hanya jika semua semester)
+        // Tabel IPS per semester
         $ips_html = '';
         if (!$semester && !empty($ips_data)) {
             $ips_html = "
-                <h3 style='font-size: 13px; margin: 20px 0 10px;'>📊 IPS per Semester</h3>
+                <div class='section-title'>IPS per Semester</div>
                 <table class='data'>
                     <thead>
                         <tr>
@@ -425,26 +425,22 @@ class PdfController {
                         <td class='text-bold'>Semester {$sem}</td>
                         <td class='text-center'>{$info['jumlah_mk']}</td>
                         <td class='text-center'>{$info['total_sks']}</td>
-                        <td class='text-center text-bold' style='color: " . ($info['ips'] >= 3.0 ? '#2ecc71' : ($info['ips'] >= 2.5 ? '#f39c12' : '#e74c3c')) . ";'>
-                            " . number_format($info['ips'], 2) . "
-                        </td>
+                        <td class='text-center text-bold'>" . number_format($info['ips'], 2) . "</td>
                     </tr>
                 ";
             }
             $ips_html .= "
-                    <tr style='background: #ecf0f1;'>
+                    <tr style='background: #e8e8e8;'>
                         <td class='text-bold' colspan='2' style='text-align: right;'>IPK Keseluruhan:</td>
                         <td class='text-center text-bold'>{$total_sks}</td>
-                        <td class='text-center text-bold' style='color: " . ($gpa >= 3.0 ? '#2ecc71' : ($gpa >= 2.5 ? '#f39c12' : '#e74c3c')) . ";'>
-                            " . number_format($gpa, 2) . "
-                        </td>
+                        <td class='text-center text-bold'>" . number_format($gpa, 2) . "</td>
                     </tr>
                 </tbody></table>";
         }
         
         // Detail nilai
         $detail_html = "
-            <h3 style='font-size: 13px; margin: 20px 0 10px;'>📋 Detail Nilai (" . ($semester ? 'Semester ' . $semester : 'Semua Semester') . ")</h3>
+            <div class='section-title'>Detail Nilai (" . ($semester ? 'Semester ' . $semester : 'Semua Semester') . ")</div>
             <table class='data'>
                 <thead>
                     <tr>
@@ -465,7 +461,7 @@ class PdfController {
         ";
         
         if (empty($rows)) {
-            $detail_html .= "<tr><td colspan='11' class='text-center' style='padding: 20px; color: #7f8c8d;'>Tidak ada data nilai</td></tr>";
+            $detail_html .= "<tr><td colspan='11' class='text-center' style='padding: 20px; color: #555;'>Tidak ada data nilai</td></tr>";
         } else {
             foreach ($rows as $row) {
                 $tp = intval($row['total_pertemuan']);
@@ -473,11 +469,11 @@ class PdfController {
                 $nf = LaporanController::hitungNilaiFinal(floatval($row['nilai_akhir']),
                     ($tp > 0) ? ((intval($row['p_hadir']) + intval($row['p_izin']) + intval($row['p_sakit'])) / $tp) * 100 : null);
                 $nilai = floatval($nf);
-                if ($nilai >= 85) { $huruf = 'A'; $warna = '#2ecc71'; }
-                elseif ($nilai >= 75) { $huruf = 'B'; $warna = '#3498db'; }
-                elseif ($nilai >= 65) { $huruf = 'C'; $warna = '#f39c12'; }
-                elseif ($nilai >= 50) { $huruf = 'D'; $warna = '#e67e22'; }
-                else { $huruf = 'E'; $warna = '#e74c3c'; }
+                if ($nilai >= 85)      { $huruf = 'A'; }
+                elseif ($nilai >= 75)  { $huruf = 'B'; }
+                elseif ($nilai >= 65)  { $huruf = 'C'; }
+                elseif ($nilai >= 50)  { $huruf = 'D'; }
+                else                   { $huruf = 'E'; }
                 $bobot = LaporanController::nilaiKeBobot($nilai);
                 
                 $detail_html .= "
@@ -490,7 +486,7 @@ class PdfController {
                         <td class='text-center'>" . number_format($row['nilai_uts'], 1) . "</td>
                         <td class='text-center'>" . number_format($row['nilai_uas'], 1) . "</td>
                         <td class='text-center text-bold'>" . number_format($nilai, 1) . "</td>
-                        <td class='text-center' style='color: {$warna}; font-weight: bold;'>{$huruf}</td>
+                        <td class='text-center text-bold'>{$huruf}</td>
                         <td class='text-center'>" . number_format($bobot, 1) . "</td>
                         <td class='text-center'>{$kh}</td>
                     </tr>
@@ -571,30 +567,30 @@ class PdfController {
         
         // Statistik HTML
         $statistik_html = "
-            <h3 style='font-size: 13px; margin: 20px 0 10px;'>📊 Ringkasan</h3>
-            <table class='data' style='width: auto;'>
+            <div class='section-title'>Ringkasan</div>
+            <table class='summary-table'>
                 <tr>
-                    <td style='padding: 6px 15px;'><strong>Jumlah Nilai</strong></td>
-                    <td style='padding: 6px 15px;'>{$jumlah}</td>
+                    <td class='label'>Jumlah Nilai</td>
+                    <td>{$jumlah}</td>
                 </tr>
                 <tr>
-                    <td style='padding: 6px 15px;'><strong>Rata-rata</strong></td>
-                    <td style='padding: 6px 15px;'>" . ($rata !== null ? number_format($rata, 2) : '-') . "</td>
+                    <td class='label'>Rata-rata</td>
+                    <td>" . ($rata !== null ? number_format($rata, 2) : '-') . "</td>
                 </tr>
                 <tr>
-                    <td style='padding: 6px 15px;'><strong>IPS / Bobot</strong></td>
-                    <td style='padding: 6px 15px;'>" . ($ips !== null ? number_format($ips, 2) : '-') . "</td>
+                    <td class='label'>IPS / Bobot</td>
+                    <td>" . ($ips !== null ? number_format($ips, 2) : '-') . "</td>
                 </tr>
                 <tr>
-                    <td style='padding: 6px 15px;'><strong>A / B / C / D / E</strong></td>
-                    <td style='padding: 6px 15px;'>{$count_a} / {$count_b} / {$count_c} / {$count_d} / {$count_e}</td>
+                    <td class='label'>A / B / C / D / E</td>
+                    <td>{$count_a} / {$count_b} / {$count_c} / {$count_d} / {$count_e}</td>
                 </tr>
             </table>
         ";
         
         // Detail nilai
         $detail_html = "
-            <h3 style='font-size: 13px; margin: 20px 0 10px;'>📋 Detail Nilai Mahasiswa (" . $jumlah . " data)</h3>
+            <div class='section-title'>Detail Nilai Mahasiswa (" . $jumlah . " data)</div>
             <table class='data'>
                 <thead>
                     <tr>
@@ -615,18 +611,18 @@ class PdfController {
         ";
         
         if (empty($data)) {
-            $detail_html .= "<tr><td colspan='11' class='text-center' style='padding: 20px; color: #7f8c8d;'>Tidak ada data nilai</td></tr>";
+            $detail_html .= "<tr><td colspan='11' class='text-center' style='padding: 20px; color: #555;'>Tidak ada data nilai</td></tr>";
         } else {
             foreach ($data as $row) {
                 $tp = intval($row['total_pertemuan']);
                 $kh = ($tp > 0) ? ((intval($row['p_hadir']) + intval($row['p_izin']) + intval($row['p_sakit'])) / $tp) * 100 : null;
                 $nf = LaporanController::hitungNilaiFinal(floatval($row['nilai_akhir']), $kh);
                 $nilai = floatval($nf);
-                if ($nilai >= 85) { $huruf = 'A'; $warna = '#2ecc71'; }
-                elseif ($nilai >= 75) { $huruf = 'B'; $warna = '#3498db'; }
-                elseif ($nilai >= 65) { $huruf = 'C'; $warna = '#f39c12'; }
-                elseif ($nilai >= 50) { $huruf = 'D'; $warna = '#e67e22'; }
-                else { $huruf = 'E'; $warna = '#e74c3c'; }
+                if ($nilai >= 85)      { $huruf = 'A'; }
+                elseif ($nilai >= 75)  { $huruf = 'B'; }
+                elseif ($nilai >= 65)  { $huruf = 'C'; }
+                elseif ($nilai >= 50)  { $huruf = 'D'; }
+                else                   { $huruf = 'E'; }
                 
                 $detail_html .= "
                     <tr>
@@ -640,7 +636,7 @@ class PdfController {
                         <td class='text-center'>" . number_format($row['nilai_uts'], 1) . "</td>
                         <td class='text-center'>" . number_format($row['nilai_uas'], 1) . "</td>
                         <td class='text-center text-bold'>" . number_format($nilai, 1) . "</td>
-                        <td class='text-center' style='color: {$warna}; font-weight: bold;'>{$huruf}</td>
+                        <td class='text-center text-bold'>{$huruf}</td>
                     </tr>
                 ";
             }
@@ -673,6 +669,154 @@ class PdfController {
         return $this->renderPdf($html, 'laporan_nilai_dosen', true);
     }
     
+    /**
+     * Generate PDF report absensi mahasiswa pada mata kuliah yang diampu dosen.
+     */
+    public function generateLaporanAbsensiDosen($dosen_id, $course_id, $semester = null) {
+        require_once __DIR__ . '/DosenController.php';
+        $dosenController = new DosenController($this->pdo, $dosen_id);
+
+        $mk = null;
+        foreach ($dosenController->getMatakuliahDosen() as $m) {
+            if (intval($m['id']) === intval($course_id)) {
+                $mk = $m;
+                break;
+            }
+        }
+
+        if (!$mk) {
+            die('Mata kuliah tidak ditemukan atau bukan mata kuliah yang Anda ampu.');
+        }
+
+        $data = $dosenController->getLaporanAbsensiMahasiswaAmpu($course_id);
+        $pertemuan = $dosenController->getPertemuanAbsensi($course_id);
+
+        // Statistik kehadiran
+        $sum_persen = 0;
+        $jumlah_terdata = 0;
+        foreach ($data as $row) {
+            $total = intval($row['total_pertemuan']);
+            if ($total > 0) {
+                $sum_persen += (($row['hadir'] + $row['izin'] + $row['sakit']) / $total) * 100;
+                $jumlah_terdata++;
+            }
+        }
+        $rata_kehadiran = ($jumlah_terdata > 0) ? round($sum_persen / $jumlah_terdata, 2) : null;
+
+        $filter_info = "Mata Kuliah: " . htmlspecialchars($mk['kode_mk']) . " - " . htmlspecialchars($mk['nama_mk']) . "<br>"
+            . "Semester: " . htmlspecialchars($semester ?: $mk['semester']) . "<br>"
+            . "Jumlah Mahasiswa: " . count($data) . "<br>"
+            . "Pertemuan Tercatat: " . count($pertemuan) . "<br>"
+            . "Rata-rata Kehadiran: " . ($rata_kehadiran !== null ? number_format($rata_kehadiran, 1) . '%' : '-');
+
+        // Rekap per mahasiswa
+        $rekap_html = "
+            <div class='section-title'>Rekap Absensi Mahasiswa</div>
+            <table class='data'>
+                <thead>
+                    <tr>
+                        <th>NIM</th>
+                        <th>Mahasiswa</th>
+                        <th>Program Studi</th>
+                        <th class='text-center'>Pertemuan</th>
+                        <th class='text-center'>Hadir</th>
+                        <th class='text-center'>Izin</th>
+                        <th class='text-center'>Sakit</th>
+                        <th class='text-center'>Alpa</th>
+                        <th class='text-center'>Kehadiran</th>
+                    </tr>
+                </thead>
+                <tbody>
+        ";
+
+        if (empty($data)) {
+            $rekap_html .= "<tr><td colspan='9' class='text-center' style='padding: 20px; color: #555;'>Belum ada mahasiswa pada mata kuliah ini</td></tr>";
+        } else {
+            foreach ($data as $row) {
+                $total = intval($row['total_pertemuan']);
+                $persen = ($total > 0)
+                    ? number_format((($row['hadir'] + $row['izin'] + $row['sakit']) / $total) * 100, 1) . '%'
+                    : '-';
+
+                $rekap_html .= "
+                    <tr>
+                        <td class='text-bold'>" . htmlspecialchars($row['nim']) . "</td>
+                        <td>" . htmlspecialchars($row['mahasiswa_nama']) . "</td>
+                        <td>" . htmlspecialchars($row['program_studi'] ?? '-') . "</td>
+                        <td class='text-center'>{$total}</td>
+                        <td class='text-center'>{$row['hadir']}</td>
+                        <td class='text-center'>{$row['izin']}</td>
+                        <td class='text-center'>{$row['sakit']}</td>
+                        <td class='text-center'>{$row['alpa']}</td>
+                        <td class='text-center text-bold'>{$persen}</td>
+                    </tr>
+                ";
+            }
+        }
+        $rekap_html .= "</tbody></table>";
+
+        // Ringkasan per pertemuan
+        $pertemuan_html = "
+            <div class='section-title'>Absensi per Pertemuan</div>
+            <table class='data'>
+                <thead>
+                    <tr>
+                        <th>Pertemuan</th>
+                        <th>Tanggal</th>
+                        <th class='text-center'>Tercatat</th>
+                        <th class='text-center'>Hadir</th>
+                        <th class='text-center'>Izin</th>
+                        <th class='text-center'>Sakit</th>
+                        <th class='text-center'>Alpa</th>
+                    </tr>
+                </thead>
+                <tbody>
+        ";
+
+        if (empty($pertemuan)) {
+            $pertemuan_html .= "<tr><td colspan='7' class='text-center' style='padding: 20px; color: #555;'>Belum ada data absensi per pertemuan</td></tr>";
+        } else {
+            foreach ($pertemuan as $index => $p) {
+                $pertemuan_html .= "
+                    <tr>
+                        <td class='text-center'>" . ($index + 1) . "</td>
+                        <td>" . date('d-m-Y', strtotime($p['tanggal'])) . "</td>
+                        <td class='text-center'>{$p['total']}</td>
+                        <td class='text-center'>{$p['hadir']}</td>
+                        <td class='text-center'>{$p['izin']}</td>
+                        <td class='text-center'>{$p['sakit']}</td>
+                        <td class='text-center'>{$p['alpa']}</td>
+                    </tr>
+                ";
+            }
+        }
+        $pertemuan_html .= "</tbody></table>";
+
+        $html = "
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset='UTF-8'>
+                {$this->getBaseStyle()}
+            </head>
+            <body>
+                {$this->getHeader('Laporan Absensi Mahasiswa')}
+
+                <div class='info-box'>
+                    {$filter_info}
+                </div>
+
+                {$rekap_html}
+                {$pertemuan_html}
+
+                {$this->getFooter(false)}
+            </body>
+            </html>
+        ";
+
+        return $this->renderPdf($html, 'laporan_absensi_dosen', true);
+    }
+
     // ============================================
     // LAPORAN IRS
     // ============================================
@@ -686,17 +830,10 @@ class PdfController {
         $filter_info = '';
         if ($semester) $filter_info .= "Semester: {$semester}<br>";
         if ($status) $filter_info .= "Status: " . ucfirst($status) . "<br>";
-        if (!$filter_info) $filter_info = "Semua Semester & Status";
-        
-        // Status color
-        $status_color = [
-            'pending' => '#f39c12',
-            'approved' => '#2ecc71',
-            'rejected' => '#e74c3c'
-        ];
+        if (!$filter_info) $filter_info = "Semua Semester &amp; Status";
         
         $table_html = "
-            <h3 style='font-size: 13px; margin: 20px 0 10px;'>📋 Detail IRS (" . count($data) . " data)</h3>
+            <div class='section-title'>Detail IRS (" . count($data) . " data)</div>
             <table class='data'>
                 <thead>
                     <tr>
@@ -715,10 +852,9 @@ class PdfController {
         ";
         
         if (empty($data)) {
-            $table_html .= "<tr><td colspan='9' class='text-center' style='padding: 20px; color: #7f8c8d;'>Tidak ada data IRS</td></tr>";
+            $table_html .= "<tr><td colspan='9' class='text-center' style='padding: 20px; color: #555;'>Tidak ada data IRS</td></tr>";
         } else {
             foreach ($data as $row) {
-                $color = $status_color[$row['status']] ?? '#7f8c8d';
                 $table_html .= "
                     <tr>
                         <td class='text-bold'>{$row['nim']}</td>
@@ -728,7 +864,7 @@ class PdfController {
                         <td>{$row['nama_mk']}</td>
                         <td class='text-center'>{$row['sks']}</td>
                         <td class='text-center'>{$row['semester']}</td>
-                        <td class='text-center' style='color: {$color}; font-weight: bold;'>" . strtoupper($row['status']) . "</td>
+                        <td class='text-center text-bold'>" . strtoupper($row['status']) . "</td>
                         <td class='text-center'>" . date('d-m-Y', strtotime($row['created_at'])) . "</td>
                     </tr>
                 ";
@@ -786,7 +922,7 @@ class PdfController {
         $statistik_html = '';
         if (!empty($statistik)) {
             $statistik_html = "
-                <h3 style='font-size: 13px; margin: 20px 0 10px;'>📊 Statistik Presensi per Mata Kuliah</h3>
+                <div class='section-title'>Statistik Presensi per Mata Kuliah</div>
                 <table class='data'>
                     <thead>
                         <tr>
@@ -804,18 +940,17 @@ class PdfController {
                     <tbody>
             ";
             foreach ($statistik as $s) {
-                $persen_color = $s['persentase'] >= 75 ? '#2ecc71' : ($s['persentase'] >= 50 ? '#f39c12' : '#e74c3c');
                 $statistik_html .= "
                     <tr>
                         <td class='text-bold'>{$s['kode_mk']}</td>
                         <td>{$s['nama_mk']}</td>
                         <td class='text-center'>{$s['total_mahasiswa']}</td>
                         <td class='text-center'>{$s['total_presensi']}</td>
-                        <td class='text-center' style='color: #2ecc71;'>{$s['hadir']}</td>
-                        <td class='text-center' style='color: #f39c12;'>{$s['izin']}</td>
-                        <td class='text-center' style='color: #3498db;'>{$s['sakit']}</td>
-                        <td class='text-center' style='color: #e74c3c;'>{$s['alpa']}</td>
-                        <td class='text-center text-bold' style='color: {$persen_color};'>{$s['persentase']}%</td>
+                        <td class='text-center'>{$s['hadir']}</td>
+                        <td class='text-center'>{$s['izin']}</td>
+                        <td class='text-center'>{$s['sakit']}</td>
+                        <td class='text-center'>{$s['alpa']}</td>
+                        <td class='text-center text-bold'>{$s['persentase']}%</td>
                     </tr>
                 ";
             }
@@ -824,7 +959,7 @@ class PdfController {
         
         // Detail
         $detail_html = "
-            <h3 style='font-size: 13px; margin: 20px 0 10px;'>📋 Detail Presensi (" . count($data) . " data)</h3>
+            <div class='section-title'>Detail Presensi (" . count($data) . " data)</div>
             <table class='data'>
                 <thead>
                     <tr>
@@ -844,22 +979,21 @@ class PdfController {
         ";
         
         if (empty($data)) {
-            $detail_html .= "<tr><td colspan='10' class='text-center' style='padding: 20px; color: #7f8c8d;'>Tidak ada data presensi</td></tr>";
+            $detail_html .= "<tr><td colspan='10' class='text-center' style='padding: 20px; color: #555;'>Tidak ada data presensi</td></tr>";
         } else {
             foreach ($data as $row) {
-                $persen_color = $row['persentase_hadir'] >= 75 ? '#2ecc71' : ($row['persentase_hadir'] >= 50 ? '#f39c12' : '#e74c3c');
                 $detail_html .= "
                     <tr>
                         <td class='text-bold'>{$row['kode_mk']}</td>
                         <td>{$row['nama_mk']}</td>
                         <td>{$row['nim']}</td>
                         <td>{$row['mahasiswa_nama']}</td>
-                        <td class='text-center' style='color: #2ecc71;'>{$row['hadir']}</td>
-                        <td class='text-center' style='color: #f39c12;'>{$row['izin']}</td>
-                        <td class='text-center' style='color: #3498db;'>{$row['sakit']}</td>
-                        <td class='text-center' style='color: #e74c3c;'>{$row['alpa']}</td>
+                        <td class='text-center'>{$row['hadir']}</td>
+                        <td class='text-center'>{$row['izin']}</td>
+                        <td class='text-center'>{$row['sakit']}</td>
+                        <td class='text-center'>{$row['alpa']}</td>
                         <td class='text-center text-bold'>{$row['total_pertemuan']}</td>
-                        <td class='text-center text-bold' style='color: {$persen_color};'>{$row['persentase_hadir']}%</td>
+                        <td class='text-center text-bold'>{$row['persentase_hadir']}%</td>
                     </tr>
                 ";
             }
@@ -916,7 +1050,7 @@ class PdfController {
         }
         
         $table_html = "
-            <h3 style='font-size: 13px; margin: 20px 0 10px;'>📋 Data Mahasiswa (" . count($data) . " mahasiswa)</h3>
+            <div class='section-title'>Data Mahasiswa (" . count($data) . " mahasiswa)</div>
             <table class='data'>
                 <thead>
                     <tr>
@@ -934,15 +1068,15 @@ class PdfController {
         ";
         
         if (empty($data)) {
-            $table_html .= "<tr><td colspan='8' class='text-center' style='padding: 20px; color: #7f8c8d;'>Tidak ada data mahasiswa</td></tr>";
+            $table_html .= "<tr><td colspan='8' class='text-center' style='padding: 20px; color: #555;'>Tidak ada data mahasiswa</td></tr>";
         } else {
             foreach ($data as $row) {
                 $ipk = $row['ipk'] ?? 0;
-                if ($ipk >= 3.5) { $predikat = 'Cumlaude'; $warna = '#2ecc71'; }
-                elseif ($ipk >= 3.0) { $predikat = 'Sangat Baik'; $warna = '#3498db'; }
-                elseif ($ipk >= 2.5) { $predikat = 'Baik'; $warna = '#f39c12'; }
-                elseif ($ipk >= 2.0) { $predikat = 'Cukup'; $warna = '#e67e22'; }
-                else { $predikat = 'Perlu Perbaikan'; $warna = '#e74c3c'; }
+                if ($ipk >= 3.5)      { $predikat = 'Cumlaude'; }
+                elseif ($ipk >= 3.0)  { $predikat = 'Sangat Baik'; }
+                elseif ($ipk >= 2.5)  { $predikat = 'Baik'; }
+                elseif ($ipk >= 2.0)  { $predikat = 'Cukup'; }
+                else                  { $predikat = 'Perlu Perbaikan'; }
                 
                 $table_html .= "
                     <tr>
@@ -952,8 +1086,8 @@ class PdfController {
                         <td class='text-center'>{$row['angkatan']}</td>
                         <td class='text-center'>{$row['semester']}</td>
                         <td class='text-center text-bold'>{$row['total_sks']}</td>
-                        <td class='text-center text-bold' style='color: {$warna};'>" . number_format($ipk, 2) . "</td>
-                        <td class='text-center' style='color: {$warna}; font-weight: bold;'>{$predikat}</td>
+                        <td class='text-center text-bold'>" . number_format($ipk, 2) . "</td>
+                        <td class='text-center text-bold'>{$predikat}</td>
                     </tr>
                 ";
             }
@@ -989,11 +1123,6 @@ class PdfController {
     // RENDER PDF
     // ============================================
     
-    /**
-     * Render HTML ke PDF
-     * $is_wide: true -> kertas A4 landscape (untuk tabel/field lebar),
-     *           false -> kertas A4 portrait.
-     */
     private function renderPdf($html, $filename_prefix = 'laporan', $is_wide = false) {
         try {
             $dompdf = $this->setupDompdf();
@@ -1003,7 +1132,6 @@ class PdfController {
             
             $filename = $filename_prefix . '_' . date('Ymd_His') . '.pdf';
             
-            // Output ke browser (inline)
             $dompdf->stream($filename, ['Attachment' => false]);
             exit();
             
@@ -1037,11 +1165,6 @@ class PdfController {
         
         $total_sks = 0;
         $status_map = ['pending' => 'Menunggu Validasi', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'];
-        $status_color_map = [
-            'pending' => '#f39c12',
-            'approved' => '#2ecc71',
-            'rejected' => '#e74c3c',
-        ];
         
         foreach ($irs as $row) {
             $total_sks += intval($row['sks']);
@@ -1049,23 +1172,22 @@ class PdfController {
         
         $status_irs = $mhsController->getIRSStatus($semester);
         $status_irs_label = $status_map[$status_irs] ?? 'Belum Ada IRS';
-        $status_irs_color = $status_color_map[$status_irs] ?? '#7f8c8d';
         
         $filter_info = "
-            <strong style='font-size: 11px;'>Nama:</strong> {$mhs['mahasiswa_nama']}<br>
-            <strong style='font-size: 11px;'>NIM:</strong> {$mhs['nim']}<br>
-            <strong style='font-size: 11px;'>Program Studi:</strong> " . htmlspecialchars($mhs['program_studi']) . "<br>
-            <strong style='font-size: 11px;'>Fakultas:</strong> " . htmlspecialchars($mhs['fakultas_nama']) . "<br>
-            <strong style='font-size: 11px;'>Semester:</strong> {$semester}<br>
-            <strong style='font-size: 11px;'>Semester Aktif:</strong> {$mhs['semester_aktif']}<br>
-            <strong style='font-size: 11px;'>Status IRS:</strong>
-                <span style='color: {$status_irs_color}; font-weight: bold;'>{$status_irs_label}</span><br>
-            <strong style='font-size: 11px;'>Total SKS:</strong> {$total_sks}
+            <strong style='font-size: 12px;'>Nama:</strong> {$mhs['mahasiswa_nama']}<br>
+            <strong style='font-size: 12px;'>NIM:</strong> {$mhs['nim']}<br>
+            <strong style='font-size: 12px;'>Program Studi:</strong> " . htmlspecialchars($mhs['program_studi']) . "<br>
+            <strong style='font-size: 12px;'>Fakultas:</strong> " . htmlspecialchars($mhs['fakultas_nama']) . "<br>
+            <strong style='font-size: 12px;'>Semester:</strong> {$semester}<br>
+            <strong style='font-size: 12px;'>Semester Aktif:</strong> {$mhs['semester_aktif']}<br>
+            <strong style='font-size: 12px;'>Status IRS:</strong>
+                <span style='font-weight: bold;'>{$status_irs_label}</span><br>
+            <strong style='font-size: 12px;'>Total SKS:</strong> {$total_sks}
         ";
         
         // Detail KRS
         $detail_html = "
-            <h3 style='font-size: 13px; margin: 20px 0 10px;'>📋 Detail Mata Kuliah Diambil (" . count($irs) . " data)</h3>
+            <div class='section-title'>Detail Mata Kuliah Diambil (" . count($irs) . " data)</div>
             <table class='data'>
                 <thead>
                     <tr>
@@ -1082,11 +1204,10 @@ class PdfController {
         ";
         
         if (empty($irs)) {
-            $detail_html .= "<tr><td colspan='7' class='text-center' style='padding: 20px; color: #7f8c8d;'>Tidak ada mata kuliah di IRS semester ini</td></tr>";
+            $detail_html .= "<tr><td colspan='7' class='text-center' style='padding: 20px; color: #555;'>Tidak ada mata kuliah di IRS semester ini</td></tr>";
         } else {
             $no = 1;
             foreach ($irs as $row) {
-                $color = $status_color_map[$row['status']] ?? '#7f8c8d';
                 $status_label = $status_map[$row['status']] ?? ucfirst($row['status']);
                 $dosen_nama = htmlspecialchars($row['dosen_nama'] ?? '-');
                 $jadwal_text = htmlspecialchars(!empty($row['jadwal_info']) ? $row['jadwal_info'] : '-');
@@ -1098,14 +1219,14 @@ class PdfController {
                         <td class='text-center'>{$row['sks']}</td>
                         <td>{$dosen_nama}</td>
                         <td>{$jadwal_text}</td>
-                        <td class='text-center' style='color: {$color}; font-weight: bold;'>{$status_label}</td>
+                        <td class='text-center text-bold'>{$status_label}</td>
                     </tr>
                 ";
                 $no++;
             }
         }
         $detail_html .= "
-                    <tr style='background: #ecf0f1;'>
+                    <tr style='background: #e8e8e8;'>
                         <td class='text-bold' colspan='3' style='text-align: right;'>Total SKS:</td>
                         <td class='text-center text-bold'>{$total_sks}</td>
                         <td colspan='3'></td>

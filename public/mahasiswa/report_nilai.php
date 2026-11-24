@@ -88,42 +88,12 @@ function predikatGpa($gpa) {
 include __DIR__ . '/../../includes/header.php';
 ?>
 
-<style>
-.filter-bar-mhs {
-    display: flex;
-    gap: 10px;
-    flex-wrap: nowrap;
-    align-items: center;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-.filter-bar-mhs .form-group {
-    margin-bottom: 0;
-    flex: 1 1 auto;
-}
-.filter-bar-mhs .filter-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-left: auto;
-    flex-shrink: 0;
-}
-.filter-bar-mhs select {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    min-width: 180px;
-    background: #fff;
-    font-size: 14px;
-}
-</style>
+
 
 <div class="table-container">
 
     <!-- Filter -->
-    <form method="GET" class="filter-bar-mhs">
+    <form method="GET" class="filter-bar">
         <div class="form-group">
             <label class="form-label" style="font-size: 13px;">Semester</label>
             <select class="form-select" name="semester" onchange="this.form.submit()">
@@ -147,7 +117,7 @@ include __DIR__ . '/../../includes/header.php';
     </form>
 
     <!-- Ringkasan -->
-    <div class="stats-grid" style="margin-bottom: 20px;">
+    <div class="stats-grid mb-3">
         <div class="stat-card">
             <div class="stat-icon"><i class="fas fa-star"></i></div>
             <div class="stat-number" style="color: <?= warnaGpa($nilai_gpa) ?>;">
@@ -169,7 +139,7 @@ include __DIR__ . '/../../includes/header.php';
 
     <?php if (!$semester && !empty($ips_data)): ?>
         <!-- IPS per semester -->
-        <h4 style="display: flex; align-items: center; gap: 8px; margin: 0 0 10px; color: var(--secondary);">
+        <h4 class="section-title d-flex align-items-center gap-2">
             <i class="fas fa-chart-bar"></i> IPS per Semester
         </h4>
         <div style="overflow-x: auto; margin-bottom: 20px;">
@@ -195,7 +165,7 @@ include __DIR__ . '/../../includes/header.php';
                             <td class="text-muted"><?= predikatGpa($info['ips']) ?></td>
                         </tr>
                     <?php endforeach; ?>
-                    <tr style="background: #f8f9fa;">
+                    <tr class="row-total">
                         <td colspan="2" style="text-align: right;"><strong>IPK Keseluruhan:</strong></td>
                         <td><strong><?= $total_sks ?></strong></td>
                         <td><strong style="color: <?= warnaGpa($nilai_gpa) ?>; font-size: 15px;">
@@ -209,7 +179,7 @@ include __DIR__ . '/../../includes/header.php';
     <?php endif; ?>
 
     <!-- Detail Nilai -->
-    <h4 style="display: flex; align-items: center; gap: 8px; margin: 0 0 10px; color: var(--secondary);">
+    <h4 class="section-title d-flex align-items-center gap-2">
         <i class="fas fa-list"></i> Detail Nilai
         <span class="text-muted" style="font-weight: 400; font-size: 13px;">
             (<?= $semester ? 'Semester ' . htmlspecialchars($semester) : 'Semua Semester' ?>)
@@ -273,7 +243,7 @@ include __DIR__ . '/../../includes/header.php';
                             <td><?= number_format($bobot, 1) ?></td>
                         </tr>
                     <?php endforeach; ?>
-                    <tr style="background: #f8f9fa; font-weight: bold;">
+                    <tr class="row-total">
                         <td colspan="3" style="text-align: right;">Total</td>
                         <td><?= $total_sks ?></td>
                         <td colspan="7"></td>

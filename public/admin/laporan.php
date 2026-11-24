@@ -156,49 +156,6 @@ function statusVerifikasi($status) {
 include __DIR__ . '/../../includes/header.php';
 ?>
 
-<style>
-/* === Tab: teks selalu kontras, tab aktif biru + teks putih === */
-.tabs-container .tab-btn {
-    padding: 12px 25px;
-    background: none;
-    border: none;
-    border-bottom: 3px solid transparent;
-    color: #7f8c8d;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-    transition: all 0.3s;
-}
-
-.tabs-container .tab-btn:hover {
-    color: #3498db;
-    background: #f8f9fa;
-}
-
-.tabs-container .tab-btn.active {
-    color: #3498db;
-    background: #eaf2fa;
-    border-bottom-color: #3498db;
-}
-
-/* === Tombol filter/PDF: warna eksplisit agar teks tidak pernah hilang === */
-.filter-bar .btn.btn-primary,
-.filter-bar .btn.btn-primary:hover,
-.filter-bar .btn.btn-primary:focus {
-    background-color: var(--primary);
-    color: #fff;
-}
-
-.filter-bar .btn.btn-primary:hover,
-.filter-bar .btn.btn-primary:focus {
-    background-color: var(--primary-dark);
-}
-</style>
 
 <!-- Statistik Umum -->
 <div class="stats-grid">
@@ -496,7 +453,7 @@ include __DIR__ . '/../../includes/header.php';
                                     <td class="text-muted"><?= $pred ?></td>
                                 </tr>
                             <?php endforeach; ?>
-                            <tr style="background: #f8f9fa;">
+                            <tr class="row-total">
                                 <td colspan="2" style="text-align: right;"><strong>IPK Keseluruhan:</strong></td>
                                 <td><strong><?= array_sum(array_column($ips_data, 'total_sks')) ?></strong></td>
                                 <td><strong style="color: <?= $ipk_mahasiswa >= 3.0 ? '#27ae60' : ($ipk_mahasiswa >= 2.5 ? '#d68910' : '#c0392b') ?>; font-size: 15px;">
@@ -548,7 +505,7 @@ include __DIR__ . '/../../includes/header.php';
                                 <td><?= number_format($bobot, 1) ?></td>
                             </tr>
                         <?php endforeach; ?>
-                        <tr style="background: #f8f9fa; font-weight: bold;">
+                        <tr class="row-total">
                             <td colspan="3" style="text-align: right;">Total</td>
                             <td>
                                 <?php

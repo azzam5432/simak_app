@@ -1,25 +1,37 @@
 /* ============================================
-   LAPORAN — tab navigasi report admin/laporan.php
-   (filter bar & tabel pakai base.css)
+   LAPORAN — tab navigasi admin/laporan.php
    ============================================ */
 
-/* ===== Tab laporan ===== */
+.tabs-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    margin: -2px 0 18px;
+    border-bottom: 1px solid var(--border);
+}
+
 .tab-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 9px 20px;
-    background: #fff;
-    color: var(--secondary);
+    gap: 7px;
+    padding: 9px 14px;
+    background: none;
+    color: var(--gray-dark);
     font-weight: 600;
-    font-size: 14px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
-    margin-right: 8px;
-    margin-bottom: 8px;
+    font-size: 12.5px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin: 0 0 -1px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: color 0.15s ease, border-color 0.15s ease;
 }
 
-.tab-btn:hover { color: var(--primary-dark); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1); }
-.tab-btn.active { background: var(--primary); color: #fff; box-shadow: 0 3px 12px rgba(52, 152, 219, 0.35); }
+.tab-btn i { font-size: 12px; }
+
+.tab-btn:hover { color: var(--primary-dark); }
+
+.tab-btn.active {
+    color: var(--primary-dark);
+    border-bottom-color: var(--primary);
+    background: none;
+}

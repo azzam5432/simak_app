@@ -1,99 +1,128 @@
 /* ============================================
-   LOGIN — hanya public/index.php (login page)
+   LOGIN — public/index.php
+   Panel institusional dua kolom, tanpa gradasi
    ============================================ */
 
-/* ===== LOGIN ===== */
 .login-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #16324f 0%, var(--secondary) 45%, var(--primary-dark) 100%);
-    padding: 20px;
-    position: relative;
+    background: #eef1f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+}
+
+.login-shell {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    width: 100%;
+    max-width: 900px;
+    min-height: 520px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 16px 48px rgba(31, 45, 58, 0.1);
     overflow: hidden;
 }
 
-/* Dekorasi lingkaran lembut di latar (tanpa gambar) */
-.login-page::before,
-.login-page::after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-    pointer-events: none;
-}
-
-.login-page::before { width: 420px; height: 420px; top: -140px; right: -120px; }
-.login-page::after { width: 300px; height: 300px; bottom: -120px; left: -80px; }
-
-.login-container { width: 100%; max-width: 430px; position: relative; z-index: 1; }
-
-.login-box {
-    background: #fff;
-    padding: 40px 34px 30px;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35), inset 0 4px 0 var(--primary);
-    animation: slideUp 0.6s ease;
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.login-header { text-align: center; margin-bottom: 28px; }
-
-.login-header .logo-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 72px;
-    height: 72px;
-    border-radius: 20px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: #fff;
-    font-size: 30px;
-    margin-bottom: 14px;
-    box-shadow: 0 10px 24px rgba(52, 152, 219, 0.35);
-}
-
-.login-header h1 { font-size: 30px; font-weight: 700; color: var(--secondary); letter-spacing: -0.5px; }
-.login-header h1 span { color: var(--primary); }
-.login-header p { color: var(--gray-dark); font-size: 13.5px; margin-top: 6px; }
-
-/* Baris sapaan / info role di bawah form */
-.login-roles {
+/* Panel identitas kampus */
+.login-brand {
     display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 22px;
-    padding-top: 18px;
-    box-shadow: inset 0 1px 0 #eef1f5;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 32px;
+    padding: 38px 32px;
+    background: #1c2a37;
+    color: #fff;
 }
 
-.login-role-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #eef2f5;
-    color: var(--gray-dark);
-    font-size: 11px;
+.login-brand-logo { width: 116px; height: auto; display: block; margin-bottom: 22px; }
+
+.login-wordmark {
+    font-size: 26px;
     font-weight: 600;
-    padding: 5px 12px;
-    border-radius: 999px;
+    letter-spacing: 0.4px;
+    line-height: 1.1;
 }
 
-.login-role-chip i { color: var(--primary); font-size: 11px; }
-
-.login-footer { text-align: center; margin-top: 18px; color: var(--gray-dark); font-size: 12px; }
-
-@media (max-width: 768px) {
-    .login-box { padding: 30px 22px; }
-    .login-header h1 { font-size: 26px; }
+.login-brand p {
+    margin: 8px 0 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.62);
+    max-width: 220px;
 }
 
-@media (max-width: 480px) {
-    .login-box { padding: 24px 16px; }
+.login-brand-foot { font-size: 11.5px; color: rgba(255, 255, 255, 0.45); line-height: 1.7; }
+.login-brand-foot span { display: block; color: rgba(255, 255, 255, 0.75); font-weight: 600; font-size: 12px; }
+
+/* Panel form */
+.login-panel { display: flex; align-items: center; }
+
+.login-form-wrap { width: 100%; padding: 42px 46px; }
+
+.login-form-wrap h1 { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+
+.login-sub { font-size: 12.5px; color: var(--text-muted); margin-bottom: 22px; }
+
+.login-form .form-group { margin-bottom: 14px; }
+
+.login-form .form-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #45525e;
+    margin-bottom: 6px;
+}
+
+.login-form .form-label i { color: var(--gray-dark); font-size: 12px; margin: 0; }
+
+.login-form .form-control { height: 42px; }
+
+.login-form .btn { height: 42px; font-weight: 600; margin-top: 6px; }
+
+.login-help {
+    margin: 18px 0 0;
+    font-size: 11.5px;
+    color: var(--gray-dark);
+    text-align: center;
+}
+
+.login-footer {
+    margin-top: 26px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: #8b98a4;
+    text-align: center;
+}
+
+@media (max-width: 760px) {
+    .login-page { padding: 0; align-items: stretch; }
+
+    .login-shell {
+        grid-template-columns: 1fr;
+        min-height: 100vh;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .login-brand {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 14px;
+        padding: 20px 22px;
+    }
+
+    .login-brand-logo { width: 42px; margin: 0; }
+    .login-wordmark { font-size: 18px; }
+    .login-brand p { display: none; }
+    .login-brand-foot { display: none; }
+
+    .login-panel { align-items: flex-start; }
+    .login-form-wrap { padding: 30px 22px 40px; }
 }

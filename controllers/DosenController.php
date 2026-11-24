@@ -100,19 +100,44 @@ class DosenController {
         return $hari[$dayNumber] ?? 'Senin';
     }
     
-    public function getMatakuliahDosen() {
-        $stmt = $this->pdo->prepare("
+    public function getMatakuliahDosen($semester = null) {
+        $sql = "
             SELECT c.*, 
                    COUNT(DISTINCT irs.mahasiswa_id) as jumlah_mahasiswa
             FROM courses c
             JOIN jadwal jd ON jd.course_id = c.id AND jd.dosen_id = ?
             LEFT JOIN irs ON c.id = irs.course_id AND irs.status = 'approved'
-            GROUP BY c.id, c.kode_mk, c.nama_mk, c.sks, c.semester, c.jurusan_id, c.deskripsi,
-                     c.created_at, c.updated_at
-            ORDER BY c.kode_mk ASC
+            WHERE 1=1
+        ";
+        $params = [$this->dosen_id];
+
+        if ($semester !== null && $semester !== '') {
+            $sql .= " AND c.semester = ?";
+            $params[] = $semester;
+        }
+
+        $sql .= " GROUP BY c.id, c.kode_mk, c.nama_mk, c.sks, c.semester, c.jurusan_id, c.deskripsi,
+                      c.created_at, c.updated_at
+                  ORDER BY c.kode_mk ASC";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Daftar semester dari mata kuliah yang diampu dosen ini.
+     */
+    public function getSemesterDosen() {
+        $stmt = $this->pdo->prepare("
+            SELECT DISTINCT c.semester
+            FROM courses c
+            JOIN jadwal jd ON jd.course_id = c.id AND jd.dosen_id = ?
+            WHERE c.semester IS NOT NULL AND c.semester <> ''
+            ORDER BY c.semester + 0 ASC, c.semester ASC
         ");
         $stmt->execute([$this->dosen_id]);
-        return $stmt->fetchAll();
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
     
     // ============================================
@@ -186,6 +211,61 @@ class DosenController {
         
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+    
+    // ============================================
+    // LAPORAN ABSENSI MAHASISWA YANG DIAMPU
+    // ============================================
+    
+    /**
+     * Rekap absensi seluruh mahasiswa pada satu mata kuliah yang diampu dosen.
+     * Mahasiswa tanpa presensi tetap tampil dengan nilai 0.
+     */
+    public function getLaporanAbsensiMahasiswaAmpu($course_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                m.id as mahasiswa_id,
+                m.nim,
+                u.nama as mahasiswa_nama,
+                j.nama as program_studi,
+                COUNT(p.id) as total_pertemuan,
+                COALESCE(SUM(p.status = 'hadir'), 0) as hadir,
+                COALESCE(SUM(p.status = 'izin'), 0) as izin,
+                COALESCE(SUM(p.status = 'sakit'), 0) as sakit,
+                COALESCE(SUM(p.status = 'alpa'), 0) as alpa
+            FROM (
+                SELECT DISTINCT mahasiswa_id FROM irs
+                WHERE course_id = ? AND status = 'approved'
+            ) i
+            JOIN mahasiswa m ON m.id = i.mahasiswa_id
+            JOIN users u ON m.user_id = u.id
+            LEFT JOIN jurusan j ON m.jurusan_id = j.id
+            LEFT JOIN presensi p ON p.mahasiswa_id = m.id AND p.course_id = ?
+            GROUP BY m.id, m.nim, u.nama, j.nama
+            ORDER BY m.nim ASC
+        ");
+        $stmt->execute([$course_id, $course_id]);
+        return $stmt->fetchAll();
+    }
+    
+    /**
+     * Ringkasan absensi per pertemuan (tanggal) pada satu mata kuliah.
+     */
+    public function getPertemuanAbsensi($course_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT p.tanggal,
+                   COUNT(DISTINCT p.mahasiswa_id) as total,
+                   SUM(p.status = 'hadir') as hadir,
+                   SUM(p.status = 'izin') as izin,
+                   SUM(p.status = 'sakit') as sakit,
+                   SUM(p.status = 'alpa') as alpa
+            FROM presensi p
+            WHERE p.course_id = ?
+            GROUP BY p.tanggal
+            ORDER BY p.tanggal ASC
+        ");
+        $stmt->execute([$course_id]);
         return $stmt->fetchAll();
     }
     
@@ -532,6 +612,38 @@ class DosenController {
         return $stmt->fetchAll();
     }
     
+    /**
+     * Status pengumpulan seluruh mahasiswa peserta MK tugas ini.
+     * Mahasiswa yang belum mengumpulkan tetap tampil (status belum mengumpulkan).
+     */
+    public function getStatusPengumpulanTugas($task_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                m.id as mahasiswa_id,
+                m.nim,
+                u.nama as mahasiswa_nama,
+                ts.id as submission_id,
+                ts.status,
+                ts.nilai,
+                ts.file_path,
+                ts.catatan,
+                ts.submitted_at
+            FROM tasks t
+            JOIN (
+                SELECT DISTINCT mahasiswa_id FROM irs
+                WHERE course_id = (SELECT course_id FROM tasks WHERE id = ?)
+                  AND status = 'approved'
+            ) i ON 1=1
+            JOIN mahasiswa m ON m.id = i.mahasiswa_id
+            JOIN users u ON m.user_id = u.id
+            LEFT JOIN task_submissions ts ON ts.task_id = t.id AND ts.mahasiswa_id = m.id
+            WHERE t.id = ? AND t.dosen_id = ?
+            ORDER BY m.nim ASC
+        ");
+        $stmt->execute([$task_id, $task_id, $this->dosen_id]);
+        return $stmt->fetchAll();
+    }
+    
     public function createTugas($data) {
         try {
             $stmt = $this->pdo->prepare("
@@ -567,10 +679,39 @@ class DosenController {
         try {
             $stmt = $this->pdo->prepare("
                 UPDATE task_submissions 
-                SET nilai = ?, status = 'submitted'
+                SET nilai = ?
                 WHERE id = ?
+                  AND task_id IN (SELECT id FROM tasks WHERE dosen_id = ?)
             ");
-            $stmt->execute([floatval($nilai), $submission_id]);
+            $stmt->execute([floatval($nilai), $submission_id, $this->dosen_id]);
+            
+            if ($stmt->rowCount() === 0) {
+                return ['success' => false, 'message' => 'Submission tidak ditemukan atau bukan milik tugas Anda'];
+            }
+            
+            return ['success' => true];
+        } catch (PDOException $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Validasi hasil tugas mahasiswa (bukti screenshot sudah sesuai).
+     */
+    public function validasiSubmission($submission_id) {
+        try {
+            $stmt = $this->pdo->prepare("
+                UPDATE task_submissions 
+                SET status = 'validated'
+                WHERE id = ?
+                  AND task_id IN (SELECT id FROM tasks WHERE dosen_id = ?)
+            ");
+            $stmt->execute([$submission_id, $this->dosen_id]);
+            
+            if ($stmt->rowCount() === 0) {
+                return ['success' => false, 'message' => 'Submission tidak ditemukan atau bukan milik tugas Anda'];
+            }
+            
             return ['success' => true];
         } catch (PDOException $e) {
             return ['success' => false, 'message' => $e->getMessage()];
